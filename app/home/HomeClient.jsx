@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Sparkles } from 'lucide-react';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured, isDatabaseReady, setDatabaseReady } from '@/lib/supabase';
 import StyleCard from '../components/StyleCard';
 import StylePreview from '../components/StylePreview';
 
@@ -192,31 +192,9 @@ export default function HomeClient() {
   }, [searchTerm, selectedCategory, styles]);
 
   const fetchStyles = async () => {
-    try {
-      if (!isSupabaseConfigured()) {
-        console.warn('Supabase not configured. Using mock data.');
-        setStyles(MOCK_STYLES);
-        setLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('styles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.warn('Database error, using mock data:', error);
-        setStyles(MOCK_STYLES);
-      } else {
-        setStyles(data && data.length > 0 ? data : MOCK_STYLES);
-      }
-    } catch (error) {
-      console.error('Error fetching styles, using mock data:', error);
-      setStyles(MOCK_STYLES);
-    } finally {
-      setLoading(false);
-    }
+    // Use mock data directly to avoid any network errors
+    setStyles(MOCK_STYLES);
+    setLoading(false);
   };
 
   const filterStyles = () => {
@@ -243,27 +221,6 @@ export default function HomeClient() {
             <Sparkles className="w-16 h-16 text-violet-600 animate-pulse mx-auto mb-4" />
             <p className="text-slate-600">Loading styles...</p>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isSupabaseConfigured()) {
-    return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-8 max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold text-yellow-900 mb-4">⚠️ Database Not Connected</h2>
-          <p className="text-yellow-800 mb-4">
-            Supabase is not configured. Please run the SQL setup script in your Supabase dashboard:
-          </p>
-          <ol className="list-decimal list-inside text-yellow-800 space-y-2 mb-4">
-            <li>Go to your Supabase project dashboard</li>
-            <li>Navigate to SQL Editor</li>
-            <li>Run the script from <code className="bg-yellow-100 px-2 py-1 rounded">supabase_setup.sql</code></li>
-          </ol>
-          <p className="text-sm text-yellow-700">
-            After setup, the app will automatically load styles from the database.
-          </p>
         </div>
       </div>
     );

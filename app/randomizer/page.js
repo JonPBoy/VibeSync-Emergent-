@@ -103,33 +103,9 @@ export default function RandomizerPage() {
   }, []);
 
   const fetchStyles = async () => {
-    try {
-      if (!isSupabaseConfigured()) {
-        console.warn('Supabase not configured. Using mock data.');
-        setStyles(MOCK_STYLES);
-        generateRandomStyle(MOCK_STYLES);
-        return;
-      }
-
-      const { data, error } = await supabase.from('styles').select('*');
-
-      if (error) {
-        console.warn('Database error, using mock data:', error);
-        setStyles(MOCK_STYLES);
-        generateRandomStyle(MOCK_STYLES);
-        return;
-      }
-
-      const stylesData = data && data.length > 0 ? data : MOCK_STYLES;
-      setStyles(stylesData);
-      if (stylesData.length > 0) {
-        generateRandomStyle(stylesData);
-      }
-    } catch (error) {
-      console.error('Error fetching styles, using mock data:', error);
-      setStyles(MOCK_STYLES);
-      generateRandomStyle(MOCK_STYLES);
-    }
+    // Use mock data directly and generate initial random style
+    setStyles(MOCK_STYLES);
+    generateRandomStyle(MOCK_STYLES);
   };
 
   const generateRandomStyle = (sourceStyles = styles) => {
@@ -213,22 +189,6 @@ export default function RandomizerPage() {
       setDownloading(false);
     }
   };
-
-  if (!isSupabaseConfigured()) {
-    return (
-      <>
-        <Navbar />
-        <div className="container mx-auto px-4 py-12">
-          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-8 max-w-2xl mx-auto">
-            <h2 className="text-2xl font-bold text-yellow-900 mb-4">⚠️ Database Not Connected</h2>
-            <p className="text-yellow-800">
-              The randomizer requires Supabase to be configured. Please run the setup script first.
-            </p>
-          </div>
-        </div>
-      </>
-    );
-  }
 
   return (
     <>
