@@ -8,6 +8,35 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        {/* Google Fonts - Sans Serif */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&family=Lato:wght@400;700&family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Nunito:wght@400;600;700&family=Work+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" 
+          rel="stylesheet" 
+        />
+        {/* Google Fonts - Serif */}
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Merriweather:wght@400;700&family=Lora:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Crimson+Text:wght@400;600;700&family=EB+Garamond:wght@400;500;600;700&family=Spectral:wght@400;500;600;700&display=swap" 
+          rel="stylesheet" 
+        />
+        {/* Google Fonts - Display */}
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;600;700&family=Anton&family=Archivo+Black&family=Alfa+Slab+One&family=Righteous&family=Bungee&family=Russo+One&family=Teko:wght@400;500;600;700&family=Fjalla+One&display=swap" 
+          rel="stylesheet" 
+        />
+        {/* Google Fonts - Monospace */}
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap" 
+          rel="stylesheet" 
+        />
+        {/* Google Fonts - Handwriting */}
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Pacifico&family=Dancing+Script:wght@400;500;600;700&family=Satisfy&family=Caveat:wght@400;500;600;700&family=Indie+Flower&family=Patrick+Hand&display=swap" 
+          rel="stylesheet" 
+        />
+      </head>
       <body>
         <div className="min-h-screen flex flex-col">
           <header className="sticky top-0 z-50 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg">
