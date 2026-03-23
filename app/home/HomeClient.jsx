@@ -27,8 +27,36 @@ export default function HomeClient() {
   }, [searchTerm, selectedCategory, styles]);
 
   const fetchStyles = async () => {
-    // Use mock data directly to avoid any network errors
-    setStyles(MOCK_STYLES);
+    let dbStyles = [];
+    
+    // Try to fetch from Supabase if configured
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('styles')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (!error && data) {
+          // Supabase fetch succeeded, mark database as ready
+          setDatabaseReady(true);
+          dbStyles = data;
+        }
+        // If error (like table not found PGRST205), we silently ignore it
+        // No console.error - this is intentional to keep console clean
+      } catch {
+        // Silently catch any network or parsing errors
+        // Fall back to mock data
+      }
+    }
+    
+    // Merge database styles with mock styles (DB styles first, then mock)
+    // Avoid duplicates by checking IDs
+    const dbIds = new Set(dbStyles.map(s => s.id));
+    const uniqueMockStyles = MOCK_STYLES.filter(s => !dbIds.has(s.id));
+    const combinedStyles = [...dbStyles, ...uniqueMockStyles];
+    
+    setStyles(combinedStyles);
     setLoading(false);
   };
 
