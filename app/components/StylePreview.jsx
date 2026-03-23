@@ -2,14 +2,101 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download } from 'lucide-react';
+import { X, Download, Type, Palette, Code } from 'lucide-react';
 import { downloadWPTheme } from '@/lib/wpThemeGenerator';
+
+// Typography content for each category
+const TYPOGRAPHY_CONTENT = {
+  minimal: {
+    headline: "Less is More",
+    tagline: "Embrace simplicity in design",
+    description: "Clean lines and purposeful whitespace create breathing room for your content to shine. Every element serves a purpose.",
+    features: ["Clean & focused layouts", "Purposeful whitespace", "Timeless aesthetics", "Enhanced readability"],
+    quote: "Simplicity is the ultimate sophistication.",
+  },
+  bold: {
+    headline: "Make a Statement",
+    tagline: "Confidence in every pixel",
+    description: "Bold design demands attention. Strong contrasts and powerful typography create unforgettable experiences that leave lasting impressions.",
+    features: ["High-impact visuals", "Strong color contrast", "Attention-grabbing layouts", "Memorable branding"],
+    quote: "Fortune favors the bold.",
+  },
+  gradient: {
+    headline: "Smooth Transitions",
+    tagline: "Where colors flow seamlessly",
+    description: "Gradients add depth and dimension to your designs. Watch colors dance and blend to create stunning visual narratives that captivate users.",
+    features: ["Dynamic color flows", "Modern aesthetics", "Depth & dimension", "Visual storytelling"],
+    quote: "Life is a spectrum of colors.",
+  },
+  glassmorphism: {
+    headline: "Beyond the Surface",
+    tagline: "Transparency meets elegance",
+    description: "Frosted glass effects create layers of depth and sophistication. See through the design while maintaining focus on what matters most.",
+    features: ["Frosted glass effects", "Layered depth", "Modern transparency", "Elegant overlays"],
+    quote: "Clarity through transparency.",
+  },
+  neumorphism: {
+    headline: "Soft & Tactile",
+    tagline: "Design you can almost touch",
+    description: "Neumorphic design brings interfaces to life with subtle shadows and highlights. Elements appear to press in or pop out naturally.",
+    features: ["Tactile interfaces", "Soft shadows", "3D depth effects", "Organic feel"],
+    quote: "Touch the future of design.",
+  },
+  retro: {
+    headline: "Vintage Vibes",
+    tagline: "Nostalgia meets modern web",
+    description: "Take a trip down memory lane with retro aesthetics. Classic design patterns reimagined for today's digital landscape.",
+    features: ["Nostalgic aesthetics", "Classic typography", "Timeless appeal", "Distinctive character"],
+    quote: "Everything old is new again.",
+  },
+  neon: {
+    headline: "Electric Dreams",
+    tagline: "Light up the digital night",
+    description: "Neon glows illuminate dark interfaces with vibrant energy. Create cyberpunk vibes that pulse with electric intensity.",
+    features: ["Glowing effects", "Cyberpunk aesthetics", "High energy vibes", "Night mode perfection"],
+    quote: "Shine bright in the darkness.",
+  },
+  luxury: {
+    headline: "Refined Excellence",
+    tagline: "Where prestige meets perfection",
+    description: "Luxury design speaks to those who appreciate the finer things. Gold accents, rich colors, and elegant typography convey premium quality.",
+    features: ["Premium aesthetics", "Elegant typography", "Rich color palettes", "Exclusive feel"],
+    quote: "Excellence is not an act, but a habit.",
+  },
+  playful: {
+    headline: "Joy in Every Click",
+    tagline: "Design that makes you smile",
+    description: "Playful designs bring energy and delight to user experiences. Bright colors and friendly shapes create welcoming, fun interfaces.",
+    features: ["Cheerful colors", "Friendly interfaces", "Engaging animations", "Delightful details"],
+    quote: "We don't stop playing because we grow old.",
+  },
+  corporate: {
+    headline: "Professional Trust",
+    tagline: "Business-ready aesthetics",
+    description: "Corporate design builds credibility and trust. Clean professional layouts communicate reliability and competence to your audience.",
+    features: ["Professional layouts", "Trust-building design", "Clean hierarchy", "Brand consistency"],
+    quote: "Professionalism is not a label you give yourself.",
+  },
+};
+
+// Get contrasting text color based on background
+const getContrastColor = (bgColor, style) => {
+  // For dark backgrounds (neon, luxury, etc.), use light text
+  const darkBgCategories = ['neon', 'luxury'];
+  if (darkBgCategories.includes(style.category)) {
+    return '#ffffff';
+  }
+  // Use the style's text color
+  return style.textColor;
+};
 
 export default function StylePreview({ style, onClose }) {
   const [activeTab, setActiveTab] = useState('preview');
   const [downloading, setDownloading] = useState(false);
 
   if (!style) return null;
+
+  const content = TYPOGRAPHY_CONTENT[style.category] || TYPOGRAPHY_CONTENT.minimal;
 
   const cssVariables = `/* ${style.name} - Generated by VibeSync */
 :root {
@@ -23,6 +110,13 @@ export default function StylePreview({ style, onClose }) {
   --shadow-style: ${style.shadowStyle};
   --gradient-style: ${style.gradientStyle || `linear-gradient(135deg, ${style.primaryColor}, ${style.secondaryColor})`};
 }
+
+/* Typography */
+h1 { font-size: 3rem; font-weight: 700; line-height: 1.2; }
+h2 { font-size: 2.25rem; font-weight: 600; line-height: 1.3; }
+h3 { font-size: 1.5rem; font-weight: 600; line-height: 1.4; }
+p { font-size: 1rem; line-height: 1.6; }
+.lead { font-size: 1.25rem; line-height: 1.5; }
 
 /* Apply to your project */
 body {
@@ -71,14 +165,14 @@ body {
           initial={{ scale: 0.9, y: 20 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.9, y: 20 }}
-          className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+          className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-slate-200">
             <div>
               <h2 className="text-2xl font-bold text-slate-900">{style.name}</h2>
-              <p className="text-sm text-slate-500 mt-1">{style.category} style</p>
+              <p className="text-sm text-slate-500 mt-1 capitalize">{style.category} style • {style.fontFamily}</p>
             </div>
             <button
               onClick={onClose}
@@ -92,22 +186,35 @@ body {
           <div className="flex border-b border-slate-200">
             <button
               onClick={() => setActiveTab('preview')}
-              className={`flex-1 px-6 py-3 font-medium transition-colors ${
+              className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 font-medium transition-colors ${
                 activeTab === 'preview'
                   ? 'text-violet-600 border-b-2 border-violet-600'
                   : 'text-slate-500 hover:text-slate-700'
               }`}
             >
+              <Palette size={18} />
               Preview UI
             </button>
             <button
+              onClick={() => setActiveTab('typography')}
+              className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 font-medium transition-colors ${
+                activeTab === 'typography'
+                  ? 'text-violet-600 border-b-2 border-violet-600'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <Type size={18} />
+              Typography
+            </button>
+            <button
               onClick={() => setActiveTab('css')}
-              className={`flex-1 px-6 py-3 font-medium transition-colors ${
+              className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 font-medium transition-colors ${
                 activeTab === 'css'
                   ? 'text-violet-600 border-b-2 border-violet-600'
                   : 'text-slate-500 hover:text-slate-700'
               }`}
             >
+              <Code size={18} />
               Get CSS
             </button>
           </div>
@@ -182,6 +289,190 @@ body {
                         </p>
                       </div>
                     ))}
+                  </div>
+                </div>
+              </div>
+            ) : activeTab === 'typography' ? (
+              <div
+                className="rounded-2xl p-8 min-h-[500px]"
+                style={{
+                  backgroundColor: style.backgroundColor,
+                  fontFamily: style.fontFamily,
+                  color: style.textColor,
+                }}
+              >
+                <div className="max-w-3xl mx-auto">
+                  {/* H1 - Main Headline */}
+                  <div className="mb-8">
+                    <span 
+                      className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
+                      style={{ backgroundColor: style.primaryColor, color: '#fff' }}
+                    >
+                      H1 - Headline
+                    </span>
+                    <h1 
+                      className="text-5xl font-bold leading-tight"
+                      style={{ color: style.primaryColor }}
+                    >
+                      {content.headline}
+                    </h1>
+                  </div>
+
+                  {/* H2 - Subheadline */}
+                  <div className="mb-8">
+                    <span 
+                      className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
+                      style={{ backgroundColor: style.secondaryColor, color: '#fff' }}
+                    >
+                      H2 - Subheadline
+                    </span>
+                    <h2 
+                      className="text-3xl font-semibold leading-snug"
+                      style={{ color: style.secondaryColor }}
+                    >
+                      {content.tagline}
+                    </h2>
+                  </div>
+
+                  {/* Lead Paragraph */}
+                  <div className="mb-8">
+                    <span 
+                      className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
+                      style={{ backgroundColor: style.accentColor, color: '#fff' }}
+                    >
+                      Lead Paragraph
+                    </span>
+                    <p 
+                      className="text-xl leading-relaxed"
+                      style={{ color: style.textColor, opacity: 0.9 }}
+                    >
+                      {content.description}
+                    </p>
+                  </div>
+
+                  {/* H3 with Bullet Points */}
+                  <div className="mb-8">
+                    <span 
+                      className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
+                      style={{ backgroundColor: style.primaryColor, color: '#fff' }}
+                    >
+                      H3 + List Items
+                    </span>
+                    <h3 
+                      className="text-2xl font-semibold mb-4"
+                      style={{ color: style.primaryColor }}
+                    >
+                      Key Features
+                    </h3>
+                    <ul className="space-y-3">
+                      {content.features.map((feature, index) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <span 
+                            className="w-2 h-2 rounded-full mt-2 flex-shrink-0"
+                            style={{ backgroundColor: style.accentColor }}
+                          />
+                          <span style={{ color: style.textColor }}>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Regular Paragraph */}
+                  <div className="mb-8">
+                    <span 
+                      className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
+                      style={{ backgroundColor: style.secondaryColor, color: '#fff' }}
+                    >
+                      Body Text
+                    </span>
+                    <p 
+                      className="text-base leading-relaxed"
+                      style={{ color: style.textColor }}
+                    >
+                      Typography is the art and technique of arranging type to make written language 
+                      legible, readable, and appealing when displayed. The arrangement of type involves 
+                      selecting typefaces, point sizes, line lengths, line-spacing, and letter-spacing, 
+                      as well as adjusting the space between pairs of letters.
+                    </p>
+                  </div>
+
+                  {/* Blockquote */}
+                  <div className="mb-8">
+                    <span 
+                      className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
+                      style={{ backgroundColor: style.accentColor, color: '#fff' }}
+                    >
+                      Blockquote
+                    </span>
+                    <blockquote 
+                      className="text-xl italic pl-6 py-4"
+                      style={{ 
+                        borderLeft: `4px solid ${style.accentColor}`,
+                        color: style.primaryColor,
+                      }}
+                    >
+                      "{content.quote}"
+                    </blockquote>
+                  </div>
+
+                  {/* Small Text & Caption */}
+                  <div className="mb-8">
+                    <span 
+                      className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
+                      style={{ backgroundColor: style.primaryColor, color: '#fff' }}
+                    >
+                      Caption & Small Text
+                    </span>
+                    <p 
+                      className="text-sm"
+                      style={{ color: style.textColor, opacity: 0.7 }}
+                    >
+                      This is caption text, perfect for image descriptions, footnotes, and metadata. 
+                      Font: {style.fontFamily}
+                    </p>
+                  </div>
+
+                  {/* Button Examples */}
+                  <div>
+                    <span 
+                      className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
+                      style={{ backgroundColor: style.secondaryColor, color: '#fff' }}
+                    >
+                      Button Typography
+                    </span>
+                    <div className="flex flex-wrap gap-4 mt-2">
+                      <button
+                        className="px-6 py-3 font-semibold transition-transform hover:scale-105"
+                        style={{
+                          background: style.gradientStyle || `linear-gradient(135deg, ${style.primaryColor}, ${style.secondaryColor})`,
+                          color: '#ffffff',
+                          borderRadius: style.borderRadius,
+                          boxShadow: style.shadowStyle,
+                        }}
+                      >
+                        Primary Button
+                      </button>
+                      <button
+                        className="px-6 py-3 font-semibold transition-transform hover:scale-105"
+                        style={{
+                          backgroundColor: 'transparent',
+                          color: style.primaryColor,
+                          borderRadius: style.borderRadius,
+                          border: `2px solid ${style.primaryColor}`,
+                        }}
+                      >
+                        Secondary Button
+                      </button>
+                      <button
+                        className="px-6 py-3 font-medium transition-transform hover:scale-105 underline"
+                        style={{
+                          backgroundColor: 'transparent',
+                          color: style.accentColor,
+                        }}
+                      >
+                        Text Link →
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
