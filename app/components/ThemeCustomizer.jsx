@@ -259,9 +259,12 @@ export default function ThemeCustomizer({ style, onClose, onSave }) {
   };
 
   const handleSave = () => {
+    // Generate unique ID with timestamp + random suffix
+    const uniqueId = `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
     const newStyle = {
       ...customStyle,
-      id: `custom-${Date.now()}`,
+      id: uniqueId,
       name: themeName,
       category: 'custom',
       originalStyleId: style.id,

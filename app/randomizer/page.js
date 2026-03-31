@@ -308,9 +308,11 @@ export default function RandomizerPage() {
 
   const saveToFavorites = () => {
     if (!currentStyle) return;
+    // Generate unique ID with timestamp + random suffix
+    const uniqueId = `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const customStyle = {
       ...currentStyle,
-      id: `custom-${Date.now()}`,
+      id: uniqueId,
       name: `Custom Style ${new Date().toLocaleDateString()}`,
       category: 'custom',
     };
