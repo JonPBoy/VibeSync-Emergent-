@@ -4,25 +4,62 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save, RotateCcw, ChevronUp, ChevronDown, Palette, Type, Layout, Zap, Square, MousePointer, Sparkles, Eye } from 'lucide-react';
 
-// Font options organized by category
+// Font options organized by category - 100+ Google Fonts
 const FONT_OPTIONS = {
-  'Sans Serif': [
-    'Inter', 'Roboto', 'Open Sans', 'Lato', 'Poppins', 'Montserrat', 
-    'Nunito', 'Work Sans', 'DM Sans', 'Plus Jakarta Sans'
+  'Modern Sans': [
+    'Inter', 'Poppins', 'Montserrat', 'Outfit', 'Sora', 'Space Grotesk', 
+    'Manrope', 'Figtree', 'Lexend', 'Urbanist', 'Plus Jakarta Sans',
+    'DM Sans', 'Work Sans', 'Albert Sans', 'Red Hat Display'
   ],
-  'Serif': [
-    'Playfair Display', 'Merriweather', 'Lora', 'Libre Baskerville',
-    'Cormorant Garamond', 'Crimson Text', 'EB Garamond', 'Spectral'
+  'Classic Sans': [
+    'Roboto', 'Open Sans', 'Lato', 'Nunito', 'Karla', 'Rubik',
+    'Quicksand', 'Raleway', 'Source Sans 3', 'Josefin Sans', 'Mulish',
+    'Barlow', 'Cabin', 'Catamaran', 'Maven Pro', 'Questrial', 'Varela Round'
   ],
-  'Display': [
+  'Technical Sans': [
+    'Exo 2', 'Titillium Web', 'Archivo', 'Overpass', 'Hind', 'Asap',
+    'Signika', 'Comfortaa', 'Rajdhani', 'Chakra Petch', 'Jura', 'Oxanium'
+  ],
+  'Elegant Serif': [
+    'Playfair Display', 'Cormorant Garamond', 'Libre Baskerville',
+    'EB Garamond', 'Spectral', 'Fraunces', 'Bodoni Moda', 'Cormorant',
+    'DM Serif Display', 'DM Serif Text', 'Libre Caslon Text'
+  ],
+  'Classic Serif': [
+    'Merriweather', 'Lora', 'Crimson Text', 'Bitter', 'Vollkorn',
+    'Noto Serif', 'PT Serif', 'Source Serif 4', 'Literata', 'Newsreader',
+    'Cardo', 'Old Standard TT', 'Sorts Mill Goudy', 'Gilda Display'
+  ],
+  'Display & Impact': [
     'Bebas Neue', 'Oswald', 'Anton', 'Archivo Black', 'Alfa Slab One',
-    'Righteous', 'Bungee', 'Russo One', 'Teko', 'Fjalla One'
+    'Righteous', 'Russo One', 'Teko', 'Fjalla One', 'Staatliches',
+    'Passion One', 'Titan One', 'Fredoka', 'Lilita One', 'Abril Fatface'
+  ],
+  'Artistic & Unique': [
+    'Cinzel', 'Cinzel Decorative', 'Marcellus', 'Philosopher', 'Yeseva One',
+    'Poiret One', 'Julius Sans One', 'Syncopate', 'Forum', 'Oranienbaum'
+  ],
+  'Futuristic': [
+    'Orbitron', 'Audiowide', 'Michroma', 'Electrolize', 'Major Mono Display',
+    'Megrim', 'Share Tech Mono'
+  ],
+  'Handwritten': [
+    'Pacifico', 'Dancing Script', 'Satisfy', 'Caveat', 'Indie Flower',
+    'Patrick Hand', 'Kaushan Script', 'Sacramento', 'Great Vibes', 'Lobster',
+    'Yellowtail', 'Rock Salt', 'Architects Daughter', 'Gloria Hallelujah',
+    'Cookie', 'Courgette', 'Kalam', 'Neucha', 'Handlee'
+  ],
+  'Fun & Playful': [
+    'Bungee', 'Luckiest Guy', 'Permanent Marker', 'Bangers', 'Comforter Brush',
+    'Amatic SC', 'Shadows Into Light', 'Reenie Beanie', 'Just Another Hand'
   ],
   'Monospace': [
-    'Fira Code', 'JetBrains Mono', 'Source Code Pro'
+    'Fira Code', 'JetBrains Mono', 'Source Code Pro', 'IBM Plex Mono',
+    'Roboto Mono', 'Space Mono', 'Ubuntu Mono', 'Inconsolata',
+    'Anonymous Pro', 'Courier Prime', 'Overpass Mono', 'Red Hat Mono'
   ],
-  'Handwriting': [
-    'Pacifico', 'Dancing Script', 'Satisfy', 'Caveat', 'Indie Flower', 'Patrick Hand'
+  'Retro & Pixel': [
+    'Press Start 2P', 'VT323', 'Silkscreen', 'Pixelify Sans'
   ]
 };
 

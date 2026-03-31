@@ -2,28 +2,54 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Shuffle, Lock, Unlock, Download, Save, Palette, Type, Square, Sparkles, ChevronDown, Check, Heart } from 'lucide-react';
-import { MOCK_STYLES } from '@/lib/mockStyles';
+import { Shuffle, Lock, Unlock, Download, Save, Palette, Type, Square, Sparkles, ChevronDown, Check, Heart, Wand2 } from 'lucide-react';
+import { MOCK_STYLES, generateRandomTheme } from '@/lib/mockStyles';
 import { downloadWPTheme } from '@/lib/wpThemeGenerator';
 import Navbar from '../components/Navbar';
 
-// Font options
-const FONT_OPTIONS = [
-  'Inter, sans-serif',
-  'Roboto, sans-serif',
-  'Open Sans, sans-serif',
-  'Poppins, sans-serif',
-  'Montserrat, sans-serif',
-  'Playfair Display, serif',
-  'Merriweather, serif',
-  'Lora, serif',
-  'Bebas Neue, sans-serif',
-  'Oswald, sans-serif',
-  'Fira Code, monospace',
-  'JetBrains Mono, monospace',
-  'Pacifico, cursive',
-  'Dancing Script, cursive',
-];
+// Expanded Font options organized by category
+const FONT_OPTIONS = {
+  'Modern Sans': [
+    'Inter, sans-serif', 'Poppins, sans-serif', 'Montserrat, sans-serif', 
+    'Outfit, sans-serif', 'Sora, sans-serif', 'Space Grotesk, sans-serif',
+    'Plus Jakarta Sans, sans-serif', 'Lexend, sans-serif', 'Urbanist, sans-serif',
+    'Manrope, sans-serif', 'Figtree, sans-serif', 'Albert Sans, sans-serif'
+  ],
+  'Classic Sans': [
+    'Roboto, sans-serif', 'Open Sans, sans-serif', 'Lato, sans-serif',
+    'Nunito, sans-serif', 'Karla, sans-serif', 'Rubik, sans-serif',
+    'Quicksand, sans-serif', 'Raleway, sans-serif', 'Barlow, sans-serif'
+  ],
+  'Elegant Serif': [
+    'Playfair Display, serif', 'Cormorant Garamond, serif', 'Libre Baskerville, serif',
+    'DM Serif Display, serif', 'Fraunces, serif', 'Bodoni Moda, serif'
+  ],
+  'Classic Serif': [
+    'Merriweather, serif', 'Lora, serif', 'Crimson Text, serif',
+    'Source Serif 4, serif', 'Literata, serif', 'PT Serif, serif'
+  ],
+  'Display & Bold': [
+    'Bebas Neue, sans-serif', 'Oswald, sans-serif', 'Anton, sans-serif',
+    'Archivo Black, sans-serif', 'Righteous, sans-serif', 'Staatliches, sans-serif',
+    'Teko, sans-serif', 'Fjalla One, sans-serif'
+  ],
+  'Artistic': [
+    'Cinzel, serif', 'Marcellus, serif', 'Philosopher, sans-serif',
+    'Poiret One, sans-serif', 'Julius Sans One, sans-serif'
+  ],
+  'Futuristic': [
+    'Orbitron, sans-serif', 'Audiowide, sans-serif', 'Rajdhani, sans-serif',
+    'Chakra Petch, sans-serif', 'Exo 2, sans-serif', 'Oxanium, sans-serif'
+  ],
+  'Handwritten': [
+    'Pacifico, cursive', 'Dancing Script, cursive', 'Caveat, cursive',
+    'Satisfy, cursive', 'Lobster, cursive', 'Kaushan Script, cursive'
+  ],
+  'Monospace': [
+    'Fira Code, monospace', 'JetBrains Mono, monospace', 'Source Code Pro, monospace',
+    'IBM Plex Mono, monospace', 'Space Mono, monospace'
+  ]
+};
 
 // Border radius options
 const RADIUS_OPTIONS = ['0px', '4px', '8px', '12px', '16px', '20px', '24px', '50px', '100px'];
@@ -70,8 +96,37 @@ export default function RandomizerPage() {
 
   useEffect(() => {
     setStyles(MOCK_STYLES);
-    generateRandomStyle(MOCK_STYLES);
+    handleGenerateNewTheme();
   }, []);
+
+  // Generate a completely new random theme (uses curated palettes & font pairings)
+  const handleGenerateNewTheme = () => {
+    const newTheme = generateRandomTheme();
+    
+    // Apply any locked properties from current style
+    if (currentStyle) {
+      if (locks.colors) {
+        newTheme.primaryColor = currentStyle.primaryColor;
+        newTheme.secondaryColor = currentStyle.secondaryColor;
+        newTheme.accentColor = currentStyle.accentColor;
+        newTheme.backgroundColor = currentStyle.backgroundColor;
+        newTheme.textColor = currentStyle.textColor;
+        newTheme.gradientStyle = currentStyle.gradientStyle;
+      }
+      if (locks.typography) {
+        newTheme.fontFamily = currentStyle.fontFamily;
+      }
+      if (locks.radius) {
+        newTheme.borderRadius = currentStyle.borderRadius;
+      }
+      if (locks.shadow) {
+        newTheme.shadowStyle = currentStyle.shadowStyle;
+      }
+    }
+    
+    setCurrentStyle(newTheme);
+    setSaved(false);
+  };
 
   const generateRandomStyle = (sourceStyles = styles) => {
     if (sourceStyles.length === 0) return;
@@ -273,15 +328,25 @@ export default function RandomizerPage() {
               </div>
             </div>
 
-            {/* Generate Button */}
-            <button
-              onClick={() => generateRandomStyle()}
-              disabled={styles.length === 0}
-              className="w-full flex items-center justify-center gap-3 px-6 py-4 text-white font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-xl hover:shadow-xl transition-all disabled:opacity-50"
-            >
-              <Shuffle size={20} />
-              Generate Random Style
-            </button>
+            {/* Generate Buttons */}
+            <div className="flex gap-2">
+              <button
+                onClick={handleGenerateNewTheme}
+                disabled={styles.length === 0}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-4 text-white font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-xl hover:shadow-xl transition-all disabled:opacity-50"
+              >
+                <Wand2 size={18} />
+                Smart Generate
+              </button>
+              <button
+                onClick={() => generateRandomStyle()}
+                disabled={styles.length === 0}
+                className="flex items-center justify-center gap-2 px-4 py-4 text-violet-700 font-bold bg-violet-100 rounded-xl hover:bg-violet-200 transition-all disabled:opacity-50"
+                title="Mix from existing styles"
+              >
+                <Shuffle size={18} />
+              </button>
+            </div>
 
             {/* Customization Panel */}
             {currentStyle && (
@@ -314,22 +379,29 @@ export default function RandomizerPage() {
                       <ChevronDown size={16} className={`transition-transform ${showFontDropdown ? 'rotate-180' : ''}`} />
                     </button>
                     {showFontDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
-                        {FONT_OPTIONS.map((font) => (
-                          <button
-                            key={font}
-                            onClick={() => {
-                              updateStyle('fontFamily', font);
-                              setShowFontDropdown(false);
-                            }}
-                            className={`w-full px-4 py-2 text-left hover:bg-violet-50 transition-colors flex items-center justify-between ${
-                              currentStyle.fontFamily === font ? 'bg-violet-100 text-violet-700' : ''
-                            }`}
-                            style={{ fontFamily: font }}
-                          >
-                            {font.split(',')[0]}
-                            {currentStyle.fontFamily === font && <Check size={16} />}
-                          </button>
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-72 overflow-y-auto">
+                        {Object.entries(FONT_OPTIONS).map(([category, fonts]) => (
+                          <div key={category}>
+                            <div className="px-4 py-2 text-xs font-bold text-slate-400 bg-slate-50 sticky top-0 uppercase tracking-wide">
+                              {category}
+                            </div>
+                            {fonts.map((font) => (
+                              <button
+                                key={font}
+                                onClick={() => {
+                                  updateStyle('fontFamily', font);
+                                  setShowFontDropdown(false);
+                                }}
+                                className={`w-full px-4 py-2 text-left hover:bg-violet-50 transition-colors flex items-center justify-between ${
+                                  currentStyle.fontFamily === font ? 'bg-violet-100 text-violet-700' : ''
+                                }`}
+                                style={{ fontFamily: font }}
+                              >
+                                {font.split(',')[0]}
+                                {currentStyle.fontFamily === font && <Check size={16} />}
+                              </button>
+                            ))}
+                          </div>
                         ))}
                       </div>
                     )}
