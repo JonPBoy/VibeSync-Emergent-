@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Heart, Copy, Eye, Wand2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { generateAIInstructions } from '@/lib/mockStyles';
@@ -19,6 +20,7 @@ const getContrastColor = (hexColor) => {
 };
 
 export default function StyleCard({ style, onPreview }) {
+  const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedAI, setCopiedAI] = useState(false);
@@ -27,6 +29,10 @@ export default function StyleCard({ style, onPreview }) {
     const favorites = JSON.parse(localStorage.getItem('vibesync_favorites') || '[]');
     setIsFavorite(favorites.includes(style.id));
   }, [style.id]);
+
+  const navigateToEditor = () => {
+    router.push(`/style/${style.id}`);
+  };
 
   const toggleFavorite = (e) => {
     e.stopPropagation();
@@ -98,7 +104,7 @@ export default function StyleCard({ style, onPreview }) {
       {/* Visual Preview */}
       <div
         className="h-40 relative cursor-pointer"
-        onClick={() => onPreview(style)}
+        onClick={navigateToEditor}
         style={{
           background: style.gradientStyle || `linear-gradient(135deg, ${style.primaryColor}, ${style.secondaryColor})`,
         }}
