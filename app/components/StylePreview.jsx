@@ -184,15 +184,49 @@ const getLabelTextColor = (bgColor) => {
   return getContrastingColor(bgColor);
 };
 
+// List style options
+const LIST_STYLES = [
+  { id: 'disc', name: 'Bullet (●)', icon: '●' },
+  { id: 'circle', name: 'Circle (○)', icon: '○' },
+  { id: 'square', name: 'Square (■)', icon: '■' },
+  { id: 'decimal', name: 'Numbers (1.)', icon: '1.' },
+  { id: 'decimal-leading-zero', name: 'Numbers (01.)', icon: '01.' },
+  { id: 'lower-alpha', name: 'Lowercase (a.)', icon: 'a.' },
+  { id: 'upper-alpha', name: 'Uppercase (A.)', icon: 'A.' },
+  { id: 'lower-roman', name: 'Roman (i.)', icon: 'i.' },
+  { id: 'upper-roman', name: 'Roman (I.)', icon: 'I.' },
+  { id: 'none', name: 'None', icon: '—' },
+  { id: 'check', name: 'Checkmarks (✓)', icon: '✓' },
+  { id: 'arrow', name: 'Arrows (→)', icon: '→' },
+  { id: 'star', name: 'Stars (★)', icon: '★' },
+  { id: 'diamond', name: 'Diamonds (◆)', icon: '◆' },
+];
+
 export default function StylePreview({ style, onClose }) {
   const [activeTab, setActiveTab] = useState('preview');
   const [downloading, setDownloading] = useState(false);
   const [selectedFont, setSelectedFont] = useState(style.fontFamily);
   const [showFontDropdown, setShowFontDropdown] = useState(false);
+  
+  // Individual typography settings
+  const [h1Font, setH1Font] = useState(style.fontFamily);
+  const [h2Font, setH2Font] = useState(style.fontFamily);
+  const [h3Font, setH3Font] = useState(style.fontFamily);
+  const [paragraphFont, setParagraphFont] = useState(style.fontFamily);
+  const [listStyle, setListStyle] = useState('disc');
+  const [showH1Dropdown, setShowH1Dropdown] = useState(false);
+  const [showH2Dropdown, setShowH2Dropdown] = useState(false);
+  const [showH3Dropdown, setShowH3Dropdown] = useState(false);
+  const [showParagraphDropdown, setShowParagraphDropdown] = useState(false);
+  const [showListStyleDropdown, setShowListStyleDropdown] = useState(false);
 
-  // Update selected font when style changes
+  // Update selected fonts when style changes
   useEffect(() => {
     setSelectedFont(style.fontFamily);
+    setH1Font(style.fontFamily);
+    setH2Font(style.fontFamily);
+    setH3Font(style.fontFamily);
+    setParagraphFont(style.fontFamily);
   }, [style.fontFamily]);
 
   if (!style) return null;
@@ -214,17 +248,22 @@ export default function StylePreview({ style, onClose }) {
   --background-color: ${style.backgroundColor};
   --text-color: ${style.textColor};
   --font-family: ${selectedFont};
+  --font-h1: ${h1Font};
+  --font-h2: ${h2Font};
+  --font-h3: ${h3Font};
+  --font-paragraph: ${paragraphFont};
   --border-radius: ${style.borderRadius};
   --shadow-style: ${style.shadowStyle};
   --gradient-style: ${style.gradientStyle || `linear-gradient(135deg, ${style.primaryColor}, ${style.secondaryColor})`};
 }
 
 /* Typography */
-h1 { font-size: 3rem; font-weight: 700; line-height: 1.2; }
-h2 { font-size: 2.25rem; font-weight: 600; line-height: 1.3; }
-h3 { font-size: 1.5rem; font-weight: 600; line-height: 1.4; }
-p { font-size: 1rem; line-height: 1.6; }
-.lead { font-size: 1.25rem; line-height: 1.5; }
+h1 { font-family: var(--font-h1); font-size: 3rem; font-weight: 700; line-height: 1.2; }
+h2 { font-family: var(--font-h2); font-size: 2.25rem; font-weight: 600; line-height: 1.3; }
+h3 { font-family: var(--font-h3); font-size: 1.5rem; font-weight: 600; line-height: 1.4; }
+p { font-family: var(--font-paragraph); font-size: 1rem; line-height: 1.6; }
+.lead { font-family: var(--font-paragraph); font-size: 1.25rem; line-height: 1.5; }
+ul, ol { list-style-type: ${listStyle.includes('check') || listStyle.includes('arrow') || listStyle.includes('star') || listStyle.includes('diamond') ? 'none' : listStyle}; }
 
 /* Apply to your project */
 body {
@@ -302,6 +341,127 @@ body {
       )}
     </div>
   );
+
+  // Individual font selector component
+  const IndividualFontSelector = ({ label, value, onChange, isOpen, setIsOpen, closeOthers }) => (
+    <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-b-0">
+      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <div className="relative">
+        <button
+          onClick={() => {
+            closeOthers();
+            setIsOpen(!isOpen);
+          }}
+          className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:border-violet-400 transition-colors text-sm min-w-[180px] justify-between"
+          style={{ fontFamily: value }}
+        >
+          <span className="truncate">{value.split(',')[0]}</span>
+          <ChevronDown size={14} className={`text-slate-400 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+        </button>
+        
+        {isOpen && (
+          <div className="absolute top-full right-0 mt-1 w-64 max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl z-50">
+            {Object.entries(FONT_OPTIONS).map(([category, fonts]) => (
+              <div key={category}>
+                <div className="px-3 py-1.5 bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wider sticky top-0">
+                  {category}
+                </div>
+                {fonts.map((font) => (
+                  <button
+                    key={font}
+                    onClick={() => {
+                      onChange(font);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full px-3 py-1.5 text-left hover:bg-violet-50 transition-colors text-sm ${
+                      value === font ? 'bg-violet-100 text-violet-700' : 'text-slate-700'
+                    }`}
+                    style={{ fontFamily: font }}
+                  >
+                    {font.split(',')[0]}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // List style selector component
+  const ListStyleSelector = () => (
+    <div className="flex items-center justify-between py-3">
+      <span className="text-sm font-medium text-slate-700">List Style</span>
+      <div className="relative">
+        <button
+          onClick={() => {
+            setShowH1Dropdown(false);
+            setShowH2Dropdown(false);
+            setShowH3Dropdown(false);
+            setShowParagraphDropdown(false);
+            setShowListStyleDropdown(!showListStyleDropdown);
+          }}
+          className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg hover:border-violet-400 transition-colors text-sm min-w-[180px] justify-between"
+        >
+          <span className="flex items-center gap-2">
+            <span className="w-5 text-center">{LIST_STYLES.find(s => s.id === listStyle)?.icon}</span>
+            <span>{LIST_STYLES.find(s => s.id === listStyle)?.name}</span>
+          </span>
+          <ChevronDown size={14} className={`text-slate-400 transition-transform flex-shrink-0 ${showListStyleDropdown ? 'rotate-180' : ''}`} />
+        </button>
+        
+        {showListStyleDropdown && (
+          <div className="absolute top-full right-0 mt-1 w-56 max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl z-50">
+            {LIST_STYLES.map((listOption) => (
+              <button
+                key={listOption.id}
+                onClick={() => {
+                  setListStyle(listOption.id);
+                  setShowListStyleDropdown(false);
+                }}
+                className={`w-full px-3 py-2 text-left hover:bg-violet-50 transition-colors text-sm flex items-center gap-3 ${
+                  listStyle === listOption.id ? 'bg-violet-100 text-violet-700' : 'text-slate-700'
+                }`}
+              >
+                <span className="w-5 text-center font-mono">{listOption.icon}</span>
+                <span>{listOption.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // Close all dropdowns helper
+  const closeAllDropdowns = () => {
+    setShowH1Dropdown(false);
+    setShowH2Dropdown(false);
+    setShowH3Dropdown(false);
+    setShowParagraphDropdown(false);
+    setShowListStyleDropdown(false);
+  };
+
+  // Get list item marker based on style
+  const getListMarker = (index) => {
+    switch (listStyle) {
+      case 'check': return '✓';
+      case 'arrow': return '→';
+      case 'star': return '★';
+      case 'diamond': return '◆';
+      case 'decimal': return `${index + 1}.`;
+      case 'decimal-leading-zero': return `${String(index + 1).padStart(2, '0')}.`;
+      case 'lower-alpha': return `${String.fromCharCode(97 + index)}.`;
+      case 'upper-alpha': return `${String.fromCharCode(65 + index)}.`;
+      case 'lower-roman': return ['i', 'ii', 'iii', 'iv'][index] + '.';
+      case 'upper-roman': return ['I', 'II', 'III', 'IV'][index] + '.';
+      case 'circle': return '○';
+      case 'square': return '■';
+      case 'none': return '';
+      default: return '●';
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -452,13 +612,76 @@ body {
               </div>
             ) : activeTab === 'typography' ? (
               <div>
-                {/* Font Selector */}
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-200">
-                  <div>
-                    <h3 className="font-semibold text-slate-900">Change Font</h3>
-                    <p className="text-sm text-slate-500">Preview different typefaces with this style</p>
+                {/* Typography Controls */}
+                <div className="bg-slate-50 rounded-xl p-4 mb-6">
+                  <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                    <Type size={18} className="text-violet-600" />
+                    Typography Settings
+                  </h3>
+                  <p className="text-sm text-slate-500 mb-4">Customize fonts for each text element individually</p>
+                  
+                  <div className="bg-white rounded-lg p-4 space-y-1">
+                    <IndividualFontSelector
+                      label="H1 - Headlines"
+                      value={h1Font}
+                      onChange={setH1Font}
+                      isOpen={showH1Dropdown}
+                      setIsOpen={setShowH1Dropdown}
+                      closeOthers={() => { setShowH2Dropdown(false); setShowH3Dropdown(false); setShowParagraphDropdown(false); setShowListStyleDropdown(false); }}
+                    />
+                    <IndividualFontSelector
+                      label="H2 - Subheadlines"
+                      value={h2Font}
+                      onChange={setH2Font}
+                      isOpen={showH2Dropdown}
+                      setIsOpen={setShowH2Dropdown}
+                      closeOthers={() => { setShowH1Dropdown(false); setShowH3Dropdown(false); setShowParagraphDropdown(false); setShowListStyleDropdown(false); }}
+                    />
+                    <IndividualFontSelector
+                      label="H3 - Section Titles"
+                      value={h3Font}
+                      onChange={setH3Font}
+                      isOpen={showH3Dropdown}
+                      setIsOpen={setShowH3Dropdown}
+                      closeOthers={() => { setShowH1Dropdown(false); setShowH2Dropdown(false); setShowParagraphDropdown(false); setShowListStyleDropdown(false); }}
+                    />
+                    <IndividualFontSelector
+                      label="Paragraph & Body"
+                      value={paragraphFont}
+                      onChange={setParagraphFont}
+                      isOpen={showParagraphDropdown}
+                      setIsOpen={setShowParagraphDropdown}
+                      closeOthers={() => { setShowH1Dropdown(false); setShowH2Dropdown(false); setShowH3Dropdown(false); setShowListStyleDropdown(false); }}
+                    />
+                    <ListStyleSelector />
                   </div>
-                  <FontSelector />
+
+                  {/* Quick Actions */}
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      onClick={() => {
+                        const font = h1Font;
+                        setH2Font(font);
+                        setH3Font(font);
+                        setParagraphFont(font);
+                      }}
+                      className="text-xs px-3 py-1.5 bg-violet-100 text-violet-700 rounded-lg hover:bg-violet-200 transition-colors"
+                    >
+                      Apply H1 font to all
+                    </button>
+                    <button
+                      onClick={() => {
+                        setH1Font(style.fontFamily);
+                        setH2Font(style.fontFamily);
+                        setH3Font(style.fontFamily);
+                        setParagraphFont(style.fontFamily);
+                        setListStyle('disc');
+                      }}
+                      className="text-xs px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
+                    >
+                      Reset to default
+                    </button>
+                  </div>
                 </div>
 
                 {/* Typography Preview */}
@@ -466,7 +689,6 @@ body {
                   className="rounded-2xl p-8 min-h-[500px]"
                   style={{
                     backgroundColor: bgColor,
-                    fontFamily: selectedFont,
                   }}
                 >
                   <div className="max-w-3xl mx-auto">
@@ -479,11 +701,11 @@ body {
                           color: getLabelTextColor(style.primaryColor) 
                         }}
                       >
-                        H1 - Headline
+                        H1 - Headline • {h1Font.split(',')[0]}
                       </span>
                       <h1 
                         className="text-5xl font-bold leading-tight"
-                        style={{ color: primaryTextColor }}
+                        style={{ color: primaryTextColor, fontFamily: h1Font }}
                       >
                         {content.headline}
                       </h1>
@@ -498,11 +720,11 @@ body {
                           color: getLabelTextColor(style.secondaryColor) 
                         }}
                       >
-                        H2 - Subheadline
+                        H2 - Subheadline • {h2Font.split(',')[0]}
                       </span>
                       <h2 
                         className="text-3xl font-semibold leading-snug"
-                        style={{ color: secondaryTextColor }}
+                        style={{ color: secondaryTextColor, fontFamily: h2Font }}
                       >
                         {content.tagline}
                       </h2>
@@ -517,17 +739,17 @@ body {
                           color: getLabelTextColor(style.accentColor) 
                         }}
                       >
-                        Lead Paragraph
+                        Lead Paragraph • {paragraphFont.split(',')[0]}
                       </span>
                       <p 
                         className="text-xl leading-relaxed"
-                        style={{ color: bodyTextColor }}
+                        style={{ color: bodyTextColor, fontFamily: paragraphFont }}
                       >
                         {content.description}
                       </p>
                     </div>
 
-                    {/* H3 with Bullet Points */}
+                    {/* H3 with List Items */}
                     <div className="mb-8">
                       <span 
                         className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
@@ -536,25 +758,57 @@ body {
                           color: getLabelTextColor(style.primaryColor) 
                         }}
                       >
-                        H3 + List Items
+                        H3 + List • {h3Font.split(',')[0]} • Style: {LIST_STYLES.find(s => s.id === listStyle)?.name}
                       </span>
                       <h3 
                         className="text-2xl font-semibold mb-4"
-                        style={{ color: primaryTextColor }}
+                        style={{ color: primaryTextColor, fontFamily: h3Font }}
                       >
                         Key Features
                       </h3>
                       <ul className="space-y-3">
                         {content.features.map((feature, index) => (
-                          <li key={index} className="flex items-start gap-3">
-                            <span 
-                              className="w-2 h-2 rounded-full mt-2 flex-shrink-0"
-                              style={{ backgroundColor: style.accentColor }}
-                            />
+                          <li key={index} className="flex items-start gap-3" style={{ fontFamily: paragraphFont }}>
+                            {listStyle !== 'none' && (
+                              <span 
+                                className="flex-shrink-0 mt-0.5 min-w-[20px] text-center"
+                                style={{ color: style.accentColor }}
+                              >
+                                {getListMarker(index)}
+                              </span>
+                            )}
                             <span style={{ color: bodyTextColor }}>{feature}</span>
                           </li>
                         ))}
                       </ul>
+                    </div>
+
+                    {/* Numbered List Example */}
+                    <div className="mb-8">
+                      <span 
+                        className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
+                        style={{ 
+                          backgroundColor: style.secondaryColor, 
+                          color: getLabelTextColor(style.secondaryColor) 
+                        }}
+                      >
+                        Ordered List Preview
+                      </span>
+                      <ol className="space-y-2 mt-2">
+                        {['First step in the process', 'Second important item', 'Third and final point'].map((item, index) => (
+                          <li key={index} className="flex items-start gap-3" style={{ fontFamily: paragraphFont }}>
+                            {listStyle !== 'none' && (
+                              <span 
+                                className="flex-shrink-0 mt-0.5 min-w-[20px] text-center font-medium"
+                                style={{ color: style.accentColor }}
+                              >
+                                {getListMarker(index)}
+                              </span>
+                            )}
+                            <span style={{ color: bodyTextColor }}>{item}</span>
+                          </li>
+                        ))}
+                      </ol>
                     </div>
 
                     {/* Regular Paragraph */}
@@ -566,11 +820,11 @@ body {
                           color: getLabelTextColor(style.secondaryColor) 
                         }}
                       >
-                        Body Text
+                        Body Text • {paragraphFont.split(',')[0]}
                       </span>
                       <p 
                         className="text-base leading-relaxed"
-                        style={{ color: bodyTextColor }}
+                        style={{ color: bodyTextColor, fontFamily: paragraphFont }}
                       >
                         Typography is the art and technique of arranging type to make written language 
                         legible, readable, and appealing when displayed. The arrangement of type involves 
@@ -595,6 +849,7 @@ body {
                         style={{ 
                           borderLeft: `4px solid ${style.accentColor}`,
                           color: primaryTextColor,
+                          fontFamily: h2Font,
                         }}
                       >
                         "{content.quote}"
@@ -614,10 +869,10 @@ body {
                       </span>
                       <p 
                         className="text-sm opacity-70"
-                        style={{ color: bodyTextColor }}
+                        style={{ color: bodyTextColor, fontFamily: paragraphFont }}
                       >
                         This is caption text, perfect for image descriptions, footnotes, and metadata. 
-                        Current font: {selectedFont.split(',')[0]}
+                        Current fonts - H1: {h1Font.split(',')[0]}, H2: {h2Font.split(',')[0]}, H3: {h3Font.split(',')[0]}, Body: {paragraphFont.split(',')[0]}
                       </p>
                     </div>
 
@@ -640,6 +895,7 @@ body {
                             color: '#ffffff',
                             borderRadius: style.borderRadius,
                             boxShadow: style.shadowStyle,
+                            fontFamily: paragraphFont,
                           }}
                         >
                           Primary Button
@@ -651,6 +907,7 @@ body {
                             color: primaryTextColor,
                             borderRadius: style.borderRadius,
                             border: `2px solid ${style.primaryColor}`,
+                            fontFamily: paragraphFont,
                           }}
                         >
                           Secondary Button
@@ -660,6 +917,7 @@ body {
                           style={{
                             backgroundColor: 'transparent',
                             color: accentTextColor,
+                            fontFamily: paragraphFont,
                           }}
                         >
                           Text Link →
@@ -669,13 +927,20 @@ body {
                   </div>
                 </div>
 
-                {/* Contrast Info */}
-                <div className="mt-4 p-4 bg-slate-100 rounded-xl">
-                  <h4 className="text-sm font-semibold text-slate-700 mb-2">🎨 Auto Contrast Applied</h4>
-                  <p className="text-xs text-slate-600">
-                    Text colors are automatically adjusted to ensure readability against the background. 
-                    Light backgrounds get dark text, dark backgrounds get light text.
-                  </p>
+                {/* Info Section */}
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-violet-50 rounded-xl">
+                    <h4 className="text-sm font-semibold text-violet-700 mb-2">🎨 Auto Contrast</h4>
+                    <p className="text-xs text-violet-600">
+                      Text colors automatically adjust for readability against the background.
+                    </p>
+                  </div>
+                  <div className="p-4 bg-emerald-50 rounded-xl">
+                    <h4 className="text-sm font-semibold text-emerald-700 mb-2">📋 Export Ready</h4>
+                    <p className="text-xs text-emerald-600">
+                      Your custom typography settings will be included in CSS and WordPress exports.
+                    </p>
+                  </div>
                 </div>
               </div>
             ) : (
