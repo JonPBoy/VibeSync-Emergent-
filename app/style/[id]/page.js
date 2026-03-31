@@ -166,7 +166,7 @@ export default function StyleEditorPage() {
     setStyleConfig(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleCopyAI = () => {
+  const handleCopyAI = async () => {
     const aiPrompt = `Create a design with the following specifications:
     
 Color Palette:
@@ -186,9 +186,42 @@ Style:
 
 This style is called "${style?.name || 'Custom Style'}" and belongs to the ${style?.category || 'custom'} category.`;
 
-    navigator.clipboard.writeText(aiPrompt);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      // Try modern clipboard API first
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(aiPrompt);
+      } else {
+        // Fallback for browsers that don't support clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = aiPrompt;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      // Fallback if clipboard API is blocked
+      const textArea = document.createElement('textarea');
+      textArea.value = aiPrompt;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (e) {
+        console.error('Copy failed:', e);
+      }
+      document.body.removeChild(textArea);
+    }
   };
 
   const handleSave = () => {

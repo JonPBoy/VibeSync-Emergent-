@@ -38,6 +38,7 @@ const getStyleTags = (style) => {
 export default function HomeClient() {
   const [styles, setStyles] = useState([]);
   const [filteredStyles, setFilteredStyles] = useState([]);
+  const [shuffledStyles, setShuffledStyles] = useState([]); // Store shuffled order
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -45,6 +46,7 @@ export default function HomeClient() {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedMoods, setSelectedMoods] = useState([]);
   const [selectedIndustries, setSelectedIndustries] = useState([]);
+  const [isShuffled, setIsShuffled] = useState(false);
 
   const categories = CATEGORIES;
 
@@ -52,9 +54,22 @@ export default function HomeClient() {
     fetchStyles();
   }, []);
 
+  // Shuffle styles on client side only after initial mount (to avoid hydration mismatch)
   useEffect(() => {
-    filterStyles();
-  }, [searchTerm, selectedCategory, styles, selectedMoods, selectedIndustries]);
+    if (styles.length > 0 && !loading && !isShuffled) {
+      const shuffled = [...styles].sort(() => Math.random() - 0.5);
+      setShuffledStyles(shuffled);
+      setFilteredStyles(shuffled);
+      setIsShuffled(true);
+    }
+  }, [styles, loading, isShuffled]);
+
+  // Re-filter when search/category/tags change, using shuffled order
+  useEffect(() => {
+    if (isShuffled) {
+      filterStyles();
+    }
+  }, [searchTerm, selectedCategory, selectedMoods, selectedIndustries, isShuffled]);
 
   const fetchStyles = async () => {
     let dbStyles = [];
@@ -80,15 +95,23 @@ export default function HomeClient() {
     const uniqueMockStyles = MOCK_STYLES.filter(s => !dbIds.has(s.id));
     const combinedStyles = [...dbStyles, ...uniqueMockStyles];
     
-    // Shuffle styles randomly on each page load for variety
-    const shuffledStyles = [...combinedStyles].sort(() => Math.random() - 0.5);
-    
-    setStyles(shuffledStyles);
+    // Set styles initially (no shuffle here to avoid hydration mismatch)
+    setStyles(combinedStyles);
     setLoading(false);
   };
 
+  // Shuffle styles on client side only after initial mount
+  useEffect(() => {
+    if (styles.length > 0 && !loading) {
+      // Only shuffle once on mount, not on every styles change
+      const shuffled = [...styles].sort(() => Math.random() - 0.5);
+      setFilteredStyles(shuffled);
+    }
+  }, [loading]); // Only depend on loading, not styles
+
   const filterStyles = () => {
-    let filtered = styles;
+    // Use shuffledStyles to maintain random order when filtering
+    let filtered = shuffledStyles.length > 0 ? shuffledStyles : styles;
 
     if (selectedCategory !== 'all') {
       filtered = filtered.filter((style) => style.category === selectedCategory);
