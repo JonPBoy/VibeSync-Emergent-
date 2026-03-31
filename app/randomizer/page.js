@@ -1,11 +1,149 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Shuffle, Lock, Unlock, Download, Heart, Palette, Type, Square, Sparkles, ChevronDown, Check, Wand2, RotateCcw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Shuffle, Lock, Unlock, Download, Heart, Palette, Type, Square, Sparkles, ChevronDown, Check, Wand2, Dices } from 'lucide-react';
 import { MOCK_STYLES, generateRandomTheme } from '@/lib/mockStyles';
 import { downloadWPTheme } from '@/lib/wpThemeGenerator';
 import Navbar from '../components/Navbar';
+
+// Dice Rolling Animation Component
+const DiceRollAnimation = ({ isRolling, onComplete }) => {
+  const [diceValues, setDiceValues] = useState([1, 2, 3]);
+  
+  useEffect(() => {
+    if (isRolling) {
+      // Rapidly change dice values during roll
+      const interval = setInterval(() => {
+        setDiceValues([
+          Math.floor(Math.random() * 6) + 1,
+          Math.floor(Math.random() * 6) + 1,
+          Math.floor(Math.random() * 6) + 1,
+        ]);
+      }, 80);
+      
+      // Stop after animation
+      setTimeout(() => {
+        clearInterval(interval);
+        onComplete();
+      }, 1500);
+      
+      return () => clearInterval(interval);
+    }
+  }, [isRolling, onComplete]);
+
+  const diceFaces = {
+    1: [[1, 1]],
+    2: [[0, 0], [2, 2]],
+    3: [[0, 0], [1, 1], [2, 2]],
+    4: [[0, 0], [0, 2], [2, 0], [2, 2]],
+    5: [[0, 0], [0, 2], [1, 1], [2, 0], [2, 2]],
+    6: [[0, 0], [0, 1], [0, 2], [2, 0], [2, 1], [2, 2]],
+  };
+
+  const DiceFace = ({ value, delay, color }) => (
+    <motion.div
+      initial={{ rotateX: 0, rotateY: 0, scale: 0.5 }}
+      animate={isRolling ? {
+        rotateX: [0, 360, 720, 1080],
+        rotateY: [0, 360, 720, 1080],
+        scale: [0.5, 1.2, 1],
+      } : { rotateX: 0, rotateY: 0, scale: 1 }}
+      transition={{ duration: 1.5, delay, ease: "easeOut" }}
+      className="w-16 h-16 md:w-20 md:h-20 rounded-xl shadow-2xl relative"
+      style={{ 
+        background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
+        transformStyle: 'preserve-3d',
+      }}
+    >
+      <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 p-2 gap-1">
+        {[0, 1, 2].map(row => 
+          [0, 1, 2].map(col => {
+            const hasDot = diceFaces[value]?.some(([r, c]) => r === row && c === col);
+            return (
+              <div key={`${row}-${col}`} className="flex items-center justify-center">
+                {hasDot && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-white shadow-inner"
+                  />
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+    </motion.div>
+  );
+
+  return (
+    <AnimatePresence>
+      {isRolling && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+        >
+          <div className="text-center">
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", bounce: 0.5 }}
+              className="flex gap-4 md:gap-6 justify-center mb-8"
+            >
+              <DiceFace value={diceValues[0]} delay={0} color="#8B5CF6" />
+              <DiceFace value={diceValues[1]} delay={0.1} color="#D946EF" />
+              <DiceFace value={diceValues[2]} delay={0.2} color="#06B6D4" />
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                Rolling the dice...
+              </h2>
+              <p className="text-white/60">Creating something beautiful</p>
+            </motion.div>
+            
+            {/* Sparkle particles */}
+            {[...Array(12)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-2 h-2 bg-white rounded-full"
+                initial={{ 
+                  x: 0, 
+                  y: 0, 
+                  opacity: 0,
+                  scale: 0 
+                }}
+                animate={{ 
+                  x: (Math.random() - 0.5) * 400, 
+                  y: (Math.random() - 0.5) * 400, 
+                  opacity: [0, 1, 0],
+                  scale: [0, 1.5, 0]
+                }}
+                transition={{ 
+                  duration: 1.5, 
+                  delay: Math.random() * 0.5,
+                  repeat: Infinity,
+                  repeatDelay: Math.random() * 0.5
+                }}
+                style={{
+                  left: '50%',
+                  top: '50%',
+                }}
+              />
+            ))}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
 
 // Expanded Font options organized by category
 const FONT_OPTIONS = {
@@ -79,11 +217,37 @@ export default function RandomizerPage() {
   const [saved, setSaved] = useState(false);
   const [showFontDropdown, setShowFontDropdown] = useState(false);
   const [activePanel, setActivePanel] = useState('colors');
+  const [isRollingDice, setIsRollingDice] = useState(false);
 
   useEffect(() => {
     setStyles(MOCK_STYLES);
     handleGenerateNewTheme();
   }, []);
+
+  // Dice roll handler with animation
+  const handleDiceRoll = () => {
+    setIsRollingDice(true);
+  };
+
+  const onDiceRollComplete = () => {
+    // Reset all locks for a completely fresh theme
+    setLocks({
+      colors: false,
+      typography: false,
+      radius: false,
+      shadow: false,
+    });
+    
+    // Generate completely new theme
+    const newTheme = generateRandomTheme();
+    setCurrentStyle(newTheme);
+    setSaved(false);
+    
+    // Small delay before hiding animation
+    setTimeout(() => {
+      setIsRollingDice(false);
+    }, 300);
+  };
 
   const handleGenerateNewTheme = () => {
     const newTheme = generateRandomTheme();
@@ -177,6 +341,10 @@ export default function RandomizerPage() {
   return (
     <>
       <Navbar />
+      
+      {/* Dice Roll Animation Overlay */}
+      <DiceRollAnimation isRolling={isRollingDice} onComplete={onDiceRollComplete} />
+      
       <div className="min-h-screen bg-gradient-to-br from-slate-100 via-violet-50 to-fuchsia-50">
         <div className="container mx-auto px-4 py-6">
           
@@ -204,8 +372,9 @@ export default function RandomizerPage() {
                   <LockPill lockKey="shadow" icon={Sparkles} label="Shadow" />
                 </div>
 
-                {/* Generate Button - Floating */}
+                {/* Action Buttons - Floating */}
                 <div className="absolute top-4 right-4 flex gap-2 z-10">
+                  {/* Regular Generate */}
                   <button
                     onClick={handleGenerateNewTheme}
                     className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm text-violet-700 font-bold rounded-full hover:bg-white hover:shadow-lg transition-all"
@@ -213,6 +382,44 @@ export default function RandomizerPage() {
                     <Wand2 size={16} />
                     Generate
                   </button>
+                  
+                  {/* DICE ROLL BUTTON - The Star! */}
+                  <motion.button
+                    onClick={handleDiceRoll}
+                    whileHover={{ scale: 1.05, rotate: [0, -5, 5, 0] }}
+                    whileTap={{ scale: 0.95 }}
+                    className="relative flex items-center gap-2 px-5 py-2 font-bold rounded-full overflow-hidden group"
+                    style={{
+                      background: 'linear-gradient(135deg, #8B5CF6 0%, #D946EF 50%, #06B6D4 100%)',
+                      boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)',
+                    }}
+                  >
+                    {/* Animated background shimmer */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                      animate={{ x: ['-100%', '100%'] }}
+                      transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                    />
+                    
+                    {/* Dice icon with wiggle */}
+                    <motion.div
+                      animate={{ rotate: [0, -10, 10, -10, 0] }}
+                      transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+                    >
+                      <Dices size={20} className="text-white" />
+                    </motion.div>
+                    
+                    <span className="relative text-white font-bold">Roll Dice!</span>
+                    
+                    {/* Sparkle effects */}
+                    <motion.span
+                      className="absolute top-1 right-2 text-yellow-300 text-xs"
+                      animate={{ opacity: [0, 1, 0], scale: [0.5, 1, 0.5] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      ✨
+                    </motion.span>
+                  </motion.button>
                 </div>
 
                 {/* Preview Content */}
