@@ -80,7 +80,10 @@ export default function HomeClient() {
     const uniqueMockStyles = MOCK_STYLES.filter(s => !dbIds.has(s.id));
     const combinedStyles = [...dbStyles, ...uniqueMockStyles];
     
-    setStyles(combinedStyles);
+    // Shuffle styles randomly on each page load for variety
+    const shuffledStyles = [...combinedStyles].sort(() => Math.random() - 0.5);
+    
+    setStyles(shuffledStyles);
     setLoading(false);
   };
 

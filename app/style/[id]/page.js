@@ -12,12 +12,47 @@ import { MOCK_STYLES } from '@/lib/mockStyles';
 import { downloadWPTheme } from '@/lib/wpThemeGenerator';
 import Navbar from '../../components/Navbar';
 
-// Font options
+// Font options - 150+ Google Fonts
 const FONT_OPTIONS = [
+  // Sans-Serif Modern
   'Inter', 'Poppins', 'Montserrat', 'Outfit', 'Sora', 'Space Grotesk',
+  'Plus Jakarta Sans', 'Lexend', 'Urbanist', 'Manrope', 'Figtree', 'Albert Sans',
+  'DM Sans', 'Work Sans', 'Mulish', 'Gabarito', 'Geologica', 'Onest',
+  'Red Hat Display', 'Jost', 'Overpass',
+  // Sans-Serif Classic
   'Roboto', 'Open Sans', 'Lato', 'Nunito', 'Karla', 'Rubik',
-  'Playfair Display', 'Cormorant Garamond', 'Libre Baskerville', 'Merriweather',
-  'Bebas Neue', 'Oswald', 'Anton', 'Fira Code', 'JetBrains Mono'
+  'Quicksand', 'Raleway', 'Barlow', 'Noto Sans', 'Ubuntu', 'Fira Sans',
+  'Hind', 'Cabin', 'Asap', 'Titillium Web', 'Assistant', 'Archivo',
+  'IBM Plex Sans', 'Exo 2', 'PT Sans',
+  // Rounded & Friendly
+  'Nunito Sans', 'Varela Round', 'Comfortaa', 'Oxygen', 'Maven Pro',
+  'Catamaran', 'Encode Sans', 'Signika', 'Josefin Sans', 'Fredoka', 'Baloo 2',
+  // Serif Elegant
+  'Playfair Display', 'Cormorant Garamond', 'Libre Baskerville', 'DM Serif Display',
+  'Fraunces', 'Bodoni Moda', 'Cinzel', 'Abril Fatface', 'Cormorant',
+  'Gilda Display', 'Italiana', 'Forum', 'Marcellus', 'Sorts Mill Goudy', 'Libre Caslon Text',
+  // Serif Classic
+  'Merriweather', 'Lora', 'Crimson Text', 'Source Serif 4', 'PT Serif',
+  'EB Garamond', 'Spectral', 'Bitter', 'Cardo', 'Noto Serif', 'Vollkorn',
+  'Zilla Slab', 'Arvo', 'Rokkitt',
+  // Display Bold
+  'Bebas Neue', 'Oswald', 'Anton', 'Archivo Black', 'Righteous', 'Staatliches',
+  'Teko', 'Fjalla One', 'Bungee', 'Black Ops One', 'Russo One', 'Passion One',
+  'Khand', 'Sigmar One', 'Patua One', 'Concert One', 'Bowlby One SC',
+  // Condensed
+  'Roboto Condensed', 'Barlow Condensed', 'PT Sans Narrow', 'Pathway Gothic One',
+  'Yanone Kaffeesatz', 'Open Sans Condensed',
+  // Handwritten & Script
+  'Pacifico', 'Dancing Script', 'Caveat', 'Satisfy', 'Lobster', 'Kaushan Script',
+  'Permanent Marker', 'Sacramento', 'Great Vibes', 'Indie Flower',
+  'Shadows Into Light', 'Amatic SC', 'Gloria Hallelujah', 'Patrick Hand', 'Chewy',
+  // Tech & Futuristic
+  'Orbitron', 'Audiowide', 'Electrolize', 'Rajdhani', 'Share Tech',
+  'Exo', 'Saira', 'Prompt', 'Spartan',
+  // Monospace
+  'Fira Code', 'JetBrains Mono', 'Source Code Pro', 'IBM Plex Mono',
+  'Space Mono', 'Roboto Mono', 'Ubuntu Mono', 'Share Tech Mono',
+  'Inconsolata', 'Anonymous Pro', 'Cousine', 'Overpass Mono'
 ];
 
 // Animation options

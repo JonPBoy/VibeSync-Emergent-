@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { generateAIInstructions } from '@/lib/mockStyles';
 import { copyToClipboard } from '@/lib/clipboard';
 
-// Get contrasting color for text
+// Get contrasting color for text - improved for better readability
 const getContrastColor = (hexColor) => {
   if (!hexColor || hexColor.startsWith('rgba')) return '#ffffff';
   const hex = hexColor.replace('#', '');
@@ -15,8 +15,58 @@ const getContrastColor = (hexColor) => {
   const r = parseInt(hex.substr(0, 2), 16);
   const g = parseInt(hex.substr(2, 2), 16);
   const b = parseInt(hex.substr(4, 2), 16);
+  // Using stricter threshold for better contrast
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.5 ? '#1a1a1a' : '#ffffff';
+  return luminance > 0.55 ? '#1a1a1a' : '#ffffff';
+};
+
+// Check if color is too light and needs a darker alternative
+const isColorTooLight = (hexColor) => {
+  if (!hexColor) return false;
+  const hex = hexColor.replace('#', '');
+  if (hex.length !== 6) return false;
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.75; // Very light colors
+};
+
+// Get a suitable display background color for the Aa box
+const getAaBoxColor = (style) => {
+  // Prefer primaryColor for better visibility
+  const primary = style.primaryColor;
+  const accent = style.accentColor;
+  const secondary = style.secondaryColor;
+  
+  // If primary is not too light, use it
+  if (!isColorTooLight(primary)) {
+    return { bg: primary, text: getContrastColor(primary) };
+  }
+  
+  // Try secondary
+  if (!isColorTooLight(secondary)) {
+    return { bg: secondary, text: getContrastColor(secondary) };
+  }
+  
+  // Try accent
+  if (!isColorTooLight(accent)) {
+    return { bg: accent, text: getContrastColor(accent) };
+  }
+  
+  // All colors are light - use a darker version of primary
+  return { bg: darkenColor(primary, 0.3), text: '#ffffff' };
+};
+
+// Darken a hex color by a factor (0-1)
+const darkenColor = (hex, factor) => {
+  if (!hex) return '#333333';
+  const h = hex.replace('#', '');
+  if (h.length !== 6) return '#333333';
+  const r = Math.max(0, Math.floor(parseInt(h.substr(0, 2), 16) * (1 - factor)));
+  const g = Math.max(0, Math.floor(parseInt(h.substr(2, 2), 16) * (1 - factor)));
+  const b = Math.max(0, Math.floor(parseInt(h.substr(4, 2), 16) * (1 - factor)));
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 };
 
 export default function StyleCard({ style, onPreview }) {
@@ -110,18 +160,23 @@ export default function StyleCard({ style, onPreview }) {
         }}
       >
         <div className="absolute inset-0 flex items-center justify-center">
-          <div
-            className="w-24 h-24 flex items-center justify-center font-bold text-2xl transition-transform hover:scale-110"
-            style={{
-              fontFamily: style.fontFamily,
-              borderRadius: style.borderRadius,
-              backgroundColor: style.accentColor,
-              color: getContrastColor(style.accentColor),
-              boxShadow: style.shadowStyle,
-            }}
-          >
-            Aa
-          </div>
+          {(() => {
+            const aaStyle = getAaBoxColor(style);
+            return (
+              <div
+                className="w-24 h-24 flex items-center justify-center font-bold text-2xl transition-transform hover:scale-110"
+                style={{
+                  fontFamily: style.fontFamily,
+                  borderRadius: style.borderRadius,
+                  backgroundColor: aaStyle.bg,
+                  color: aaStyle.text,
+                  boxShadow: style.shadowStyle,
+                }}
+              >
+                Aa
+              </div>
+            );
+          })()}
         </div>
         {/* Category badge */}
         {style.category === 'custom' && (

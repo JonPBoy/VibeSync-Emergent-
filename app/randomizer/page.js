@@ -161,39 +161,76 @@ const DiceRollAnimation = ({ isRolling, onComplete }) => {
   );
 };
 
-// Expanded Font options organized by category
+// Expanded Font options organized by category - 150+ fonts
 const FONT_OPTIONS = {
   'Modern Sans': [
     'Inter, sans-serif', 'Poppins, sans-serif', 'Montserrat, sans-serif', 
     'Outfit, sans-serif', 'Sora, sans-serif', 'Space Grotesk, sans-serif',
     'Plus Jakarta Sans, sans-serif', 'Lexend, sans-serif', 'Urbanist, sans-serif',
-    'Manrope, sans-serif', 'Figtree, sans-serif', 'Albert Sans, sans-serif'
+    'Manrope, sans-serif', 'Figtree, sans-serif', 'Albert Sans, sans-serif',
+    'DM Sans, sans-serif', 'Work Sans, sans-serif', 'Mulish, sans-serif',
+    'Gabarito, sans-serif', 'Geologica, sans-serif', 'Onest, sans-serif',
+    'Red Hat Display, sans-serif', 'Jost, sans-serif', 'Overpass, sans-serif'
   ],
   'Classic Sans': [
     'Roboto, sans-serif', 'Open Sans, sans-serif', 'Lato, sans-serif',
     'Nunito, sans-serif', 'Karla, sans-serif', 'Rubik, sans-serif',
-    'Quicksand, sans-serif', 'Raleway, sans-serif', 'Barlow, sans-serif'
+    'Quicksand, sans-serif', 'Raleway, sans-serif', 'Barlow, sans-serif',
+    'Noto Sans, sans-serif', 'Ubuntu, sans-serif', 'Fira Sans, sans-serif',
+    'Hind, sans-serif', 'Cabin, sans-serif', 'Asap, sans-serif',
+    'Titillium Web, sans-serif', 'Assistant, sans-serif', 'Archivo, sans-serif',
+    'IBM Plex Sans, sans-serif', 'Exo 2, sans-serif', 'PT Sans, sans-serif'
+  ],
+  'Rounded & Friendly': [
+    'Nunito Sans, sans-serif', 'Varela Round, sans-serif', 'Comfortaa, sans-serif',
+    'Oxygen, sans-serif', 'Maven Pro, sans-serif', 'Catamaran, sans-serif',
+    'Encode Sans, sans-serif', 'Signika, sans-serif', 'Josefin Sans, sans-serif',
+    'Fredoka, sans-serif', 'Baloo 2, sans-serif'
   ],
   'Elegant Serif': [
     'Playfair Display, serif', 'Cormorant Garamond, serif', 'Libre Baskerville, serif',
-    'DM Serif Display, serif', 'Fraunces, serif', 'Bodoni Moda, serif'
+    'DM Serif Display, serif', 'Fraunces, serif', 'Bodoni Moda, serif',
+    'Cinzel, serif', 'Abril Fatface, serif', 'Cormorant, serif',
+    'Gilda Display, serif', 'Italiana, serif', 'Forum, serif',
+    'Marcellus, serif', 'Sorts Mill Goudy, serif', 'Libre Caslon Text, serif'
   ],
   'Classic Serif': [
     'Merriweather, serif', 'Lora, serif', 'Crimson Text, serif',
-    'Source Serif 4, serif', 'Literata, serif', 'PT Serif, serif'
+    'Source Serif 4, serif', 'PT Serif, serif', 'EB Garamond, serif',
+    'Spectral, serif', 'Bitter, serif', 'Cardo, serif', 'Noto Serif, serif',
+    'Vollkorn, serif', 'Zilla Slab, serif', 'Arvo, serif', 'Rokkitt, serif'
   ],
   'Display & Bold': [
     'Bebas Neue, sans-serif', 'Oswald, sans-serif', 'Anton, sans-serif',
     'Archivo Black, sans-serif', 'Righteous, sans-serif', 'Staatliches, sans-serif',
-    'Teko, sans-serif', 'Fjalla One, sans-serif'
+    'Teko, sans-serif', 'Fjalla One, sans-serif', 'Bungee, sans-serif',
+    'Black Ops One, sans-serif', 'Russo One, sans-serif', 'Passion One, sans-serif',
+    'Khand, sans-serif', 'Sigmar One, sans-serif', 'Patua One, serif',
+    'Concert One, sans-serif', 'Bowlby One SC, sans-serif'
   ],
-  'Handwritten': [
+  'Condensed': [
+    'Roboto Condensed, sans-serif', 'Barlow Condensed, sans-serif',
+    'PT Sans Narrow, sans-serif', 'Pathway Gothic One, sans-serif',
+    'Yanone Kaffeesatz, sans-serif', 'Open Sans Condensed, sans-serif'
+  ],
+  'Handwritten & Script': [
     'Pacifico, cursive', 'Dancing Script, cursive', 'Caveat, cursive',
-    'Satisfy, cursive', 'Lobster, cursive', 'Kaushan Script, cursive'
+    'Satisfy, cursive', 'Lobster, cursive', 'Kaushan Script, cursive',
+    'Permanent Marker, cursive', 'Sacramento, cursive', 'Great Vibes, cursive',
+    'Indie Flower, cursive', 'Shadows Into Light, cursive', 'Amatic SC, cursive',
+    'Gloria Hallelujah, cursive', 'Patrick Hand, cursive', 'Chewy, cursive',
+    'Covered By Your Grace, cursive'
+  ],
+  'Tech & Futuristic': [
+    'Orbitron, sans-serif', 'Audiowide, sans-serif', 'Electrolize, sans-serif',
+    'Rajdhani, sans-serif', 'Share Tech, sans-serif', 'Exo, sans-serif',
+    'Saira, sans-serif', 'Prompt, sans-serif', 'Spartan, sans-serif'
   ],
   'Monospace': [
     'Fira Code, monospace', 'JetBrains Mono, monospace', 'Source Code Pro, monospace',
-    'IBM Plex Mono, monospace', 'Space Mono, monospace'
+    'IBM Plex Mono, monospace', 'Space Mono, monospace', 'Roboto Mono, monospace',
+    'Ubuntu Mono, monospace', 'Share Tech Mono, monospace', 'Inconsolata, monospace',
+    'Anonymous Pro, monospace', 'Cousine, monospace', 'Overpass Mono, monospace'
   ]
 };
 

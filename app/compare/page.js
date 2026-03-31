@@ -6,6 +6,30 @@ import { ArrowLeft, Plus, X, Shuffle } from 'lucide-react';
 import Link from 'next/link';
 import { MOCK_STYLES } from '@/lib/mockStyles';
 
+// Get the best color for Aa box - ensures readability
+const getAaBoxStyle = (style) => {
+  const isColorLight = (hex) => {
+    if (!hex) return true;
+    const h = hex.replace('#', '');
+    if (h.length !== 6) return true;
+    const r = parseInt(h.substr(0, 2), 16);
+    const g = parseInt(h.substr(2, 2), 16);
+    const b = parseInt(h.substr(4, 2), 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.65;
+  };
+  
+  // Try to find a dark color from the palette
+  const colors = [style.primaryColor, style.textColor, style.secondaryColor];
+  for (const color of colors) {
+    if (!isColorLight(color)) {
+      return { bg: color, text: '#ffffff' };
+    }
+  }
+  
+  // All colors are light - use a darkened version
+  return { bg: 'rgba(30, 30, 60, 0.85)', text: '#ffffff' };
+};
+
 export default function ComparePage() {
   const [slots, setSlots] = useState([null, null, null]);
   const [showPicker, setShowPicker] = useState(null);
@@ -63,7 +87,21 @@ export default function ComparePage() {
                   </button>
                   <div className="h-48 relative" style={{ background: style.gradientStyle || `linear-gradient(135deg, ${style.primaryColor}, ${style.secondaryColor})` }}>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-white text-2xl font-bold" style={{ borderRadius: style.borderRadius }}>Aa</div>
+                      {(() => {
+                        const aaStyle = getAaBoxStyle(style);
+                        return (
+                          <div 
+                            className="w-20 h-20 backdrop-blur flex items-center justify-center text-2xl font-bold shadow-lg" 
+                            style={{ 
+                              borderRadius: style.borderRadius,
+                              backgroundColor: aaStyle.bg,
+                              color: aaStyle.text 
+                            }}
+                          >
+                            Aa
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="p-4">
