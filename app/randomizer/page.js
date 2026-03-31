@@ -510,31 +510,42 @@ export default function RandomizerPage() {
                   fontFamily: activeStyle?.fontFamily,
                 }}
               >
-                {/* Top Controls Row - Generate & Roll Dice centered at very top */}
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-3 z-20">
-                  {/* Regular Generate */}
+                {/* Top Controls Row - Customize, reGenerate, Roll Dice (off to side) */}
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20">
+                  {/* Customize Button - First */}
+                  <button
+                    onClick={handleCustomize}
+                    className="flex items-center gap-2 px-6 py-3 bg-white text-slate-800 font-bold rounded-2xl hover:bg-slate-50 hover:shadow-xl transition-all shadow-lg border border-slate-200"
+                  >
+                    <Settings size={18} />
+                    Customize
+                  </button>
+
+                  {/* reGenerate Button - Second */}
                   <button
                     onClick={handleGenerateNewTheme}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-white/95 backdrop-blur-sm text-violet-700 font-bold rounded-full hover:bg-white hover:shadow-lg transition-all border border-white/50"
+                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white font-bold rounded-2xl hover:from-violet-600 hover:to-purple-700 hover:shadow-xl transition-all shadow-lg"
                   >
                     <Wand2 size={18} />
-                    Generate
+                    reGenerate
                   </button>
                   
-                  {/* DICE ROLL BUTTON - The Star! */}
+                  {/* Spacer */}
+                  <div className="w-4"></div>
+                  
+                  {/* ROLL DICE BUTTON - Off to the side */}
                   <motion.button
                     onClick={handleDiceRoll}
-                    whileHover={{ scale: 1.05, rotate: [0, -5, 5, 0] }}
+                    whileHover={{ scale: 1.05, rotate: [0, -3, 3, 0] }}
                     whileTap={{ scale: 0.95 }}
-                    className="relative flex items-center gap-2 px-6 py-2.5 font-bold rounded-full overflow-hidden group"
+                    className="relative flex items-center gap-2 px-6 py-3 font-bold rounded-2xl overflow-hidden shadow-lg"
                     style={{
-                      background: 'linear-gradient(135deg, #8B5CF6 0%, #D946EF 50%, #06B6D4 100%)',
-                      boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)',
+                      background: 'linear-gradient(135deg, #F97316 0%, #EC4899 50%, #8B5CF6 100%)',
                     }}
                   >
                     {/* Animated background shimmer */}
                     <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent"
                       animate={{ x: ['-100%', '100%'] }}
                       transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
                     />
@@ -558,15 +569,6 @@ export default function RandomizerPage() {
                       ✨
                     </motion.span>
                   </motion.button>
-
-                  {/* Customize Button */}
-                  <button
-                    onClick={handleCustomize}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-slate-800/90 backdrop-blur-sm text-white font-bold rounded-full hover:bg-slate-900 hover:shadow-lg transition-all border border-slate-700/50"
-                  >
-                    <Settings size={18} />
-                    Customize
-                  </button>
                 </div>
 
                 {/* Lock Pills - Second row below buttons */}
