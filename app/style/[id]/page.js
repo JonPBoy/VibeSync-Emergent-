@@ -123,13 +123,18 @@ export default function StyleEditorPage() {
     // Gradient
     useGradient: true,
     gradientColors: ['#8B5CF6', '#6366F1'],
-    // Gradient Text settings
+    // Gradient Text settings - individual for each heading
     applyGradientText: false,
     gradientTextH1: true,
     gradientTextH2: false,
     gradientTextH3: false,
-    gradientTextColor1: '#8B5CF6',
-    gradientTextColor2: '#EC4899',
+    // Individual gradient colors for each heading
+    h1GradientColor1: '#8B5CF6',
+    h1GradientColor2: '#EC4899',
+    h2GradientColor1: '#06B6D4',
+    h2GradientColor2: '#3B82F6',
+    h3GradientColor1: '#10B981',
+    h3GradientColor2: '#059669',
     // Effects
     animationStyle: 'fade',
     borderRadius: 12,
@@ -633,62 +638,98 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
                   
                   {/* Gradient settings - only show when enabled */}
                   {styleConfig.applyGradientText && (
-                    <div className="pl-6 space-y-3 border-l-2 border-violet-200">
-                      {/* Which headings */}
+                    <div className="pl-4 space-y-4 border-l-2 border-violet-200">
+                      {/* H1 Gradient */}
                       <div className="space-y-2">
-                        <span className="text-xs font-medium text-slate-500">Apply to:</span>
-                        {[
-                          { key: 'gradientTextH1', label: 'H1 Heading' },
-                          { key: 'gradientTextH2', label: 'H2 Heading' },
-                          { key: 'gradientTextH3', label: 'H3 Heading' },
-                        ].map((item) => (
-                          <label key={item.key} className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={styleConfig[item.key]}
-                              onChange={(e) => updateConfig(item.key, e.target.checked)}
-                              className="w-3.5 h-3.5 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
-                            />
-                            <span className="text-sm text-slate-600">{item.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                      
-                      {/* Gradient colors */}
-                      <div className="space-y-2">
-                        <span className="text-xs font-medium text-slate-500">Gradient Colors:</span>
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="relative w-10 h-10 rounded-lg border-2 border-slate-200 overflow-hidden cursor-pointer hover:border-violet-400 transition-colors"
-                            style={{ backgroundColor: styleConfig.gradientTextColor1 }}
-                          >
-                            <input
-                              type="color"
-                              value={styleConfig.gradientTextColor1}
-                              onChange={(e) => updateConfig('gradientTextColor1', e.target.value)}
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            />
-                          </div>
-                          <span className="text-slate-400">→</span>
-                          <div 
-                            className="relative w-10 h-10 rounded-lg border-2 border-slate-200 overflow-hidden cursor-pointer hover:border-violet-400 transition-colors"
-                            style={{ backgroundColor: styleConfig.gradientTextColor2 }}
-                          >
-                            <input
-                              type="color"
-                              value={styleConfig.gradientTextColor2}
-                              onChange={(e) => updateConfig('gradientTextColor2', e.target.value)}
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            />
-                          </div>
-                          {/* Preview */}
-                          <div 
-                            className="flex-1 h-10 rounded-lg"
-                            style={{ 
-                              background: `linear-gradient(90deg, ${styleConfig.gradientTextColor1}, ${styleConfig.gradientTextColor2})`
-                            }}
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={styleConfig.gradientTextH1}
+                            onChange={(e) => updateConfig('gradientTextH1', e.target.checked)}
+                            className="w-3.5 h-3.5 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
                           />
-                        </div>
+                          <span className="text-sm font-medium text-slate-700">H1 Gradient</span>
+                        </label>
+                        {styleConfig.gradientTextH1 && (
+                          <div className="flex items-center gap-2 ml-6">
+                            <div 
+                              className="relative w-8 h-8 rounded-lg border-2 border-slate-200 overflow-hidden cursor-pointer hover:border-violet-400"
+                              style={{ backgroundColor: styleConfig.h1GradientColor1 }}
+                            >
+                              <input type="color" value={styleConfig.h1GradientColor1} onChange={(e) => updateConfig('h1GradientColor1', e.target.value)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                            </div>
+                            <span className="text-slate-400 text-xs">→</span>
+                            <div 
+                              className="relative w-8 h-8 rounded-lg border-2 border-slate-200 overflow-hidden cursor-pointer hover:border-violet-400"
+                              style={{ backgroundColor: styleConfig.h1GradientColor2 }}
+                            >
+                              <input type="color" value={styleConfig.h1GradientColor2} onChange={(e) => updateConfig('h1GradientColor2', e.target.value)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                            </div>
+                            <div className="flex-1 h-6 rounded" style={{ background: `linear-gradient(90deg, ${styleConfig.h1GradientColor1}, ${styleConfig.h1GradientColor2})` }} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* H2 Gradient */}
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={styleConfig.gradientTextH2}
+                            onChange={(e) => updateConfig('gradientTextH2', e.target.checked)}
+                            className="w-3.5 h-3.5 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                          />
+                          <span className="text-sm font-medium text-slate-700">H2 Gradient</span>
+                        </label>
+                        {styleConfig.gradientTextH2 && (
+                          <div className="flex items-center gap-2 ml-6">
+                            <div 
+                              className="relative w-8 h-8 rounded-lg border-2 border-slate-200 overflow-hidden cursor-pointer hover:border-violet-400"
+                              style={{ backgroundColor: styleConfig.h2GradientColor1 }}
+                            >
+                              <input type="color" value={styleConfig.h2GradientColor1} onChange={(e) => updateConfig('h2GradientColor1', e.target.value)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                            </div>
+                            <span className="text-slate-400 text-xs">→</span>
+                            <div 
+                              className="relative w-8 h-8 rounded-lg border-2 border-slate-200 overflow-hidden cursor-pointer hover:border-violet-400"
+                              style={{ backgroundColor: styleConfig.h2GradientColor2 }}
+                            >
+                              <input type="color" value={styleConfig.h2GradientColor2} onChange={(e) => updateConfig('h2GradientColor2', e.target.value)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                            </div>
+                            <div className="flex-1 h-6 rounded" style={{ background: `linear-gradient(90deg, ${styleConfig.h2GradientColor1}, ${styleConfig.h2GradientColor2})` }} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* H3 Gradient */}
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={styleConfig.gradientTextH3}
+                            onChange={(e) => updateConfig('gradientTextH3', e.target.checked)}
+                            className="w-3.5 h-3.5 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                          />
+                          <span className="text-sm font-medium text-slate-700">H3 Gradient</span>
+                        </label>
+                        {styleConfig.gradientTextH3 && (
+                          <div className="flex items-center gap-2 ml-6">
+                            <div 
+                              className="relative w-8 h-8 rounded-lg border-2 border-slate-200 overflow-hidden cursor-pointer hover:border-violet-400"
+                              style={{ backgroundColor: styleConfig.h3GradientColor1 }}
+                            >
+                              <input type="color" value={styleConfig.h3GradientColor1} onChange={(e) => updateConfig('h3GradientColor1', e.target.value)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                            </div>
+                            <span className="text-slate-400 text-xs">→</span>
+                            <div 
+                              className="relative w-8 h-8 rounded-lg border-2 border-slate-200 overflow-hidden cursor-pointer hover:border-violet-400"
+                              style={{ backgroundColor: styleConfig.h3GradientColor2 }}
+                            >
+                              <input type="color" value={styleConfig.h3GradientColor2} onChange={(e) => updateConfig('h3GradientColor2', e.target.value)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                            </div>
+                            <div className="flex-1 h-6 rounded" style={{ background: `linear-gradient(90deg, ${styleConfig.h3GradientColor1}, ${styleConfig.h3GradientColor2})` }} />
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -835,7 +876,7 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
                 style={{ 
                   fontFamily: styleConfig.h1Font,
                   ...(styleConfig.applyGradientText && styleConfig.gradientTextH1 ? {
-                    background: `linear-gradient(135deg, ${styleConfig.gradientTextColor1} 0%, ${styleConfig.gradientTextColor2} 100%)`,
+                    background: `linear-gradient(135deg, ${styleConfig.h1GradientColor1} 0%, ${styleConfig.h1GradientColor2} 100%)`,
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                   } : {
@@ -850,7 +891,7 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
                 style={{ 
                   fontFamily: styleConfig.h2Font,
                   ...(styleConfig.applyGradientText && styleConfig.gradientTextH2 ? {
-                    background: `linear-gradient(135deg, ${styleConfig.gradientTextColor1} 0%, ${styleConfig.gradientTextColor2} 100%)`,
+                    background: `linear-gradient(135deg, ${styleConfig.h2GradientColor1} 0%, ${styleConfig.h2GradientColor2} 100%)`,
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                   } : {
@@ -882,7 +923,7 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
                 style={{ 
                   fontFamily: styleConfig.h2Font,
                   ...(styleConfig.applyGradientText && styleConfig.gradientTextH2 ? {
-                    background: `linear-gradient(135deg, ${styleConfig.gradientTextColor1} 0%, ${styleConfig.gradientTextColor2} 100%)`,
+                    background: `linear-gradient(135deg, ${styleConfig.h2GradientColor1} 0%, ${styleConfig.h2GradientColor2} 100%)`,
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                   } : {

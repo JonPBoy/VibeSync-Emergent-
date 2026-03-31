@@ -1,367 +1,575 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Save, Sparkles } from 'lucide-react';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { Wand2, Save, Settings, Palette, Type, Square, Sparkles, Lock, Unlock, ChevronDown, Check, Sun, Moon, Download, Heart } from 'lucide-react';
+import { downloadWPTheme } from '@/lib/wpThemeGenerator';
 import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 
+// Font options organized by category
+const FONT_OPTIONS = {
+  'Modern Sans': [
+    'Inter, sans-serif', 'Poppins, sans-serif', 'Montserrat, sans-serif', 
+    'Outfit, sans-serif', 'Sora, sans-serif', 'Space Grotesk, sans-serif',
+  ],
+  'Classic Sans': [
+    'Roboto, sans-serif', 'Open Sans, sans-serif', 'Lato, sans-serif',
+    'Nunito, sans-serif', 'Karla, sans-serif', 'Rubik, sans-serif',
+  ],
+  'Elegant Serif': [
+    'Playfair Display, serif', 'Cormorant Garamond, serif', 'Libre Baskerville, serif',
+    'DM Serif Display, serif', 'Fraunces, serif', 'Bodoni Moda, serif',
+  ],
+  'Display & Bold': [
+    'Bebas Neue, sans-serif', 'Oswald, sans-serif', 'Anton, sans-serif',
+    'Archivo Black, sans-serif', 'Righteous, sans-serif',
+  ],
+};
+
+const RADIUS_OPTIONS = ['0px', '4px', '8px', '12px', '16px', '24px', 'full'];
+const SHADOW_OPTIONS = [
+  { label: 'None', value: 'none' },
+  { label: 'Soft', value: '0 2px 8px rgba(0,0,0,0.08)' },
+  { label: 'Medium', value: '0 4px 12px rgba(0,0,0,0.15)' },
+  { label: 'Strong', value: '0 8px 24px rgba(0,0,0,0.2)' },
+];
+
+// B&W Wireframe base style
+const WIREFRAME_STYLE = {
+  id: 'new-skin',
+  name: 'Your New Skin',
+  category: 'minimal',
+  primaryColor: '#1a1a1a',
+  secondaryColor: '#333333',
+  accentColor: '#666666',
+  backgroundColor: '#ffffff',
+  textColor: '#1a1a1a',
+  fontFamily: 'Inter, sans-serif',
+  borderRadius: '8px',
+  shadowStyle: '0 2px 8px rgba(0,0,0,0.08)',
+  gradientStyle: 'linear-gradient(135deg, #1a1a1a 0%, #333333 100%)',
+};
+
 export default function CreatePage() {
   const router = useRouter();
-  const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    category: 'minimal',
-    primaryColor: '#6366f1',
-    secondaryColor: '#8b5cf6',
-    accentColor: '#ec4899',
-    backgroundColor: '#ffffff',
-    textColor: '#1e293b',
-    fontFamily: 'Inter, sans-serif',
-    borderRadius: '12px',
-    shadowStyle: '0 4px 6px rgba(0,0,0,0.1)',
-    gradientStyle: '',
-    animationName: 'fadeIn',
+  const [currentStyle, setCurrentStyle] = useState(null);
+  const [darkModeStyle, setDarkModeStyle] = useState(null);
+  const [locks, setLocks] = useState({
+    colors: false,
+    typography: false,
+    radius: false,
+    shadow: false,
   });
+  const [downloading, setDownloading] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [showFontDropdown, setShowFontDropdown] = useState(false);
+  const [activePanel, setActivePanel] = useState('colors');
+  const [isMounted, setIsMounted] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
-  const categories = [
-    'minimal',
-    'bold',
-    'gradient',
-    'glassmorphism',
-    'neumorphism',
-    'retro',
-    'neon',
-    'luxury',
-    'playful',
-    'corporate',
-  ];
+  useEffect(() => {
+    setIsMounted(true);
+    // Initialize with the B&W wireframe style
+    setCurrentStyle({ ...WIREFRAME_STYLE });
+    setDarkModeStyle({
+      ...WIREFRAME_STYLE,
+      backgroundColor: '#1a1a1a',
+      textColor: '#ffffff',
+      primaryColor: '#ffffff',
+      secondaryColor: '#e5e5e5',
+      accentColor: '#999999',
+      gradientStyle: 'linear-gradient(135deg, #ffffff 0%, #e5e5e5 100%)',
+    });
+  }, []);
 
-  const handleChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleCustomize = () => {
+    if (!currentStyle) return;
+    const tempStyle = {
+      ...currentStyle,
+      id: `custom-${Date.now()}`,
+      name: currentStyle.name || 'Your New Skin',
+      category: 'custom',
+      darkMode: darkModeStyle ? {
+        backgroundColor: darkModeStyle.backgroundColor,
+        textColor: darkModeStyle.textColor,
+      } : null,
+    };
+    const customStyles = JSON.parse(localStorage.getItem('vibesync_custom_styles') || '[]');
+    customStyles.push(tempStyle);
+    localStorage.setItem('vibesync_custom_styles', JSON.stringify(customStyles));
+    router.push(`/style/${tempStyle.id}`);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const toggleLock = (lockName) => {
+    setLocks((prev) => ({ ...prev, [lockName]: !prev[lockName] }));
+  };
 
-    if (!isSupabaseConfigured()) {
-      alert('Supabase is not configured. Cannot save style.');
-      return;
+  const updateStyle = (key, value) => {
+    if (isDarkMode && darkModeStyle) {
+      const updatedStyle = { ...darkModeStyle, [key]: value };
+      if (['primaryColor', 'secondaryColor'].includes(key)) {
+        updatedStyle.gradientStyle = `linear-gradient(135deg, ${updatedStyle.primaryColor} 0%, ${updatedStyle.secondaryColor} 100%)`;
+      }
+      setDarkModeStyle(updatedStyle);
+    } else if (currentStyle) {
+      const updatedStyle = { ...currentStyle, [key]: value };
+      if (['primaryColor', 'secondaryColor'].includes(key)) {
+        updatedStyle.gradientStyle = `linear-gradient(135deg, ${updatedStyle.primaryColor} 0%, ${updatedStyle.secondaryColor} 100%)`;
+      }
+      setCurrentStyle(updatedStyle);
     }
+    setSaved(false);
+  };
 
-    if (!formData.name.trim()) {
-      alert('Please enter a style name');
-      return;
+  const activeStyle = isDarkMode ? darkModeStyle : currentStyle;
+
+  const saveToFavorites = () => {
+    if (!currentStyle) return;
+    const uniqueId = `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const customStyle = {
+      ...currentStyle,
+      id: uniqueId,
+      name: currentStyle.name || 'Your New Skin',
+      category: 'custom',
+      darkMode: darkModeStyle ? {
+        backgroundColor: darkModeStyle.backgroundColor,
+        textColor: darkModeStyle.textColor,
+      } : null,
+    };
+    const customStyles = JSON.parse(localStorage.getItem('vibesync_custom_styles') || '[]');
+    customStyles.push(customStyle);
+    localStorage.setItem('vibesync_custom_styles', JSON.stringify(customStyles));
+    const favorites = JSON.parse(localStorage.getItem('vibesync_favorites') || '[]');
+    if (!favorites.includes(customStyle.id)) {
+      favorites.push(customStyle.id);
+      localStorage.setItem('vibesync_favorites', JSON.stringify(favorites));
     }
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
+  const handleExport = async () => {
+    if (!currentStyle) return;
+    setDownloading(true);
     try {
-      setSaving(true);
-
-      // Auto-generate gradient if not provided
-      const finalData = {
-        ...formData,
-        gradientStyle:
-          formData.gradientStyle ||
-          `linear-gradient(135deg, ${formData.primaryColor} 0%, ${formData.secondaryColor} 100%)`,
-      };
-
-      const { error } = await supabase.from('styles').insert([finalData]);
-
-      if (error) throw error;
-
-      alert('Style created successfully! 🎉');
-      router.push('/');
+      await downloadWPTheme(currentStyle);
     } catch (error) {
-      console.error('Error creating style:', error);
-      alert('Failed to create style. Please try again.');
-    } finally {
-      setSaving(false);
+      console.error('Export failed:', error);
     }
+    setDownloading(false);
   };
+
+  // Lock Pill Component
+  const LockPill = ({ lockKey, icon: Icon, label }) => (
+    <button
+      onClick={() => toggleLock(lockKey)}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+        locks[lockKey]
+          ? 'bg-slate-800 text-white'
+          : 'bg-white/80 backdrop-blur-sm text-slate-700 hover:bg-white'
+      }`}
+    >
+      {locks[lockKey] ? <Lock size={12} /> : <Unlock size={12} />}
+      <Icon size={12} />
+      {label}
+    </button>
+  );
+
+  const getContrastColor = (hexColor) => {
+    if (!hexColor || hexColor.startsWith('rgba')) return '#ffffff';
+    const hex = hexColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.5 ? '#1a1a1a' : '#ffffff';
+  };
+
+  if (!isMounted || !currentStyle) {
+    return (
+      <>
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin"></div>
+              <p className="text-slate-500 font-medium">Preparing your canvas...</p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className="text-center mb-6"
         >
-          <h1 className="text-5xl font-bold text-slate-900 mb-4 flex items-center justify-center gap-3">
-            <Sparkles className="text-violet-600" size={48} />
-            Create Your Style
-          </h1>
-          <p className="text-xl text-slate-600">
-            Design a unique style and see it come to life in real-time
-          </p>
+          <h1 className="text-4xl font-bold text-slate-900 mb-2">Create Your Style</h1>
+          <p className="text-slate-600">Start from a clean slate and build your perfect design</p>
         </motion.div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Form */}
-            <div className="space-y-6">
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
-                <h2 className="text-2xl font-bold text-slate-900 mb-6">Style Properties</h2>
+        {/* Main Content */}
+        <div className="space-y-6">
+          {/* Preview Section */}
+          <motion.div
+            key={currentStyle?.id}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            {/* Hero Preview Card */}
+            <div
+              className="relative rounded-3xl overflow-hidden shadow-2xl border-2 border-slate-200"
+              style={{
+                background: activeStyle?.gradientStyle || `linear-gradient(135deg, ${activeStyle?.primaryColor}, ${activeStyle?.secondaryColor})`,
+                fontFamily: activeStyle?.fontFamily,
+              }}
+            >
+              {/* Top Controls Row */}
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+                {/* Customize Button */}
+                <button
+                  onClick={handleCustomize}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-white/95 backdrop-blur-sm text-slate-800 font-bold rounded-full hover:bg-white hover:shadow-lg transition-all border border-slate-300"
+                >
+                  <Settings size={18} />
+                  Customize
+                </button>
+                
+                {/* Save Button */}
+                <button
+                  onClick={saveToFavorites}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-slate-800 text-white font-bold rounded-full hover:bg-slate-900 hover:shadow-lg transition-all"
+                >
+                  {saved ? <Check size={18} /> : <Heart size={18} />}
+                  {saved ? 'Saved!' : 'Save'}
+                </button>
 
-                {/* Name */}
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Style Name *
-                  </label>
+                {/* Export Button */}
+                <button
+                  onClick={handleExport}
+                  disabled={downloading}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-slate-600 text-white font-bold rounded-full hover:bg-slate-700 hover:shadow-lg transition-all disabled:opacity-50"
+                >
+                  <Download size={18} />
+                  {downloading ? 'Exporting...' : 'Export'}
+                </button>
+              </div>
+
+              {/* Lock Pills Row */}
+              <div className="absolute top-20 left-4 flex flex-wrap gap-2 z-10">
+                <LockPill lockKey="colors" icon={Palette} label="Colors" />
+                <LockPill lockKey="typography" icon={Type} label="Font" />
+                <LockPill lockKey="radius" icon={Square} label="Radius" />
+                <LockPill lockKey="shadow" icon={Sparkles} label="Shadow" />
+                
+                {/* Day/Night Toggle */}
+                <div className="flex items-center bg-white/80 backdrop-blur-sm rounded-full p-0.5 shadow-sm">
+                  <button
+                    onClick={() => setIsDarkMode(false)}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      !isDarkMode ? 'bg-amber-400 text-white shadow-md' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    <Sun size={12} />
+                    Day
+                  </button>
+                  <button
+                    onClick={() => setIsDarkMode(true)}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      isDarkMode ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    <Moon size={12} />
+                    Night
+                  </button>
+                </div>
+              </div>
+
+              {/* Preview Content */}
+              <div className="px-8 pt-32 pb-16 md:px-16 md:pt-36 md:pb-20" style={{ backgroundColor: isDarkMode ? 'rgba(0,0,0,0.3)' : 'transparent' }}>
+                <div className="max-w-3xl mx-auto text-center">
+                  {/* Editable Name */}
                   <input
                     type="text"
-                    value={formData.name}
-                    onChange={(e) => handleChange('name', e.target.value)}
-                    placeholder="e.g., Ocean Sunset"
-                    className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none transition-all"
-                    required
+                    value={currentStyle.name}
+                    onChange={(e) => updateStyle('name', e.target.value)}
+                    className="text-4xl md:text-6xl font-bold mb-4 bg-transparent text-center w-full outline-none focus:ring-2 focus:ring-white/30 rounded-lg px-4"
+                    style={{ color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.2)' }}
+                    placeholder="Your New Skin"
                   />
-                </div>
-
-                {/* Category */}
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Category
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => handleChange('category', e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none transition-all capitalize"
+                  <p 
+                    className="text-lg md:text-xl mb-8 max-w-xl mx-auto" 
+                    style={{ color: 'rgba(255,255,255,0.9)' }}
                   >
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat} className="capitalize">
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
+                    A clean wireframe style ready for your customization
+                  </p>
+                  <div className="flex gap-4 justify-center flex-wrap">
+                    <button
+                      className="px-8 py-3 font-semibold text-lg transition-transform hover:scale-105"
+                      style={{
+                        backgroundColor: activeStyle?.accentColor,
+                        color: getContrastColor(activeStyle?.accentColor),
+                        borderRadius: activeStyle?.borderRadius,
+                        boxShadow: activeStyle?.shadowStyle,
+                      }}
+                    >
+                      Primary Action
+                    </button>
+                    <button
+                      className="px-8 py-3 font-semibold text-lg transition-transform hover:scale-105"
+                      style={{
+                        backgroundColor: 'rgba(255,255,255,0.2)',
+                        color: '#ffffff',
+                        borderRadius: activeStyle?.borderRadius,
+                        border: '2px solid rgba(255,255,255,0.4)',
+                        backdropFilter: 'blur(10px)',
+                      }}
+                    >
+                      Secondary
+                    </button>
+                  </div>
                 </div>
+              </div>
 
-                {/* Colors */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-bold text-slate-900 mb-3">Colors</h3>
-                  <div className="grid grid-cols-2 gap-4">
+              {/* Card Preview Strip */}
+              <div 
+                className="px-6 py-6"
+                style={{ backgroundColor: isDarkMode ? darkModeStyle?.backgroundColor : currentStyle?.backgroundColor }}
+              >
+                <div className="flex gap-4 overflow-x-auto pb-2">
+                  {[
+                    { title: 'Card Title', desc: 'Preview card component' },
+                    { title: 'Feature', desc: 'Highlight key features' },
+                    { title: 'Pricing', desc: 'Show your plans' },
+                  ].map((card, i) => (
+                    <div
+                      key={i}
+                      className="flex-shrink-0 w-48 p-4 transition-transform hover:scale-105"
+                      style={{
+                        backgroundColor: isDarkMode ? '#2a2a2a' : '#f8f8f8',
+                        borderRadius: activeStyle?.borderRadius,
+                        boxShadow: activeStyle?.shadowStyle,
+                        border: '1px solid',
+                        borderColor: isDarkMode ? '#3a3a3a' : '#e5e5e5',
+                      }}
+                    >
+                      <h4 
+                        className="font-bold mb-1"
+                        style={{ color: activeStyle?.primaryColor, fontFamily: activeStyle?.fontFamily }}
+                      >
+                        {card.title}
+                      </h4>
+                      <p 
+                        className="text-sm"
+                        style={{ color: isDarkMode ? '#999999' : '#666666', fontFamily: activeStyle?.fontFamily }}
+                      >
+                        {card.desc}
+                      </p>
+                    </div>
+                  ))}
+                  
+                  {/* Color Swatches */}
+                  <div className="flex-shrink-0 flex items-center gap-2 px-4">
+                    {[
+                      activeStyle?.primaryColor,
+                      activeStyle?.secondaryColor,
+                      activeStyle?.accentColor,
+                    ].map((color, i) => (
+                      <div
+                        key={i}
+                        className="w-10 h-10 rounded-full border-2 shadow-md"
+                        style={{ backgroundColor: color, borderColor: isDarkMode ? '#3a3a3a' : '#ffffff' }}
+                        title={color}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Controls Section */}
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+            {/* Panel Tabs */}
+            <div className="flex gap-2 mb-6 border-b border-slate-200 pb-4">
+              {[
+                { id: 'colors', icon: Palette, label: 'Colors' },
+                { id: 'typography', icon: Type, label: 'Typography' },
+                { id: 'layout', icon: Square, label: 'Layout' },
+              ].map((panel) => (
+                <button
+                  key={panel.id}
+                  onClick={() => setActivePanel(panel.id)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                    activePanel === panel.id
+                      ? 'bg-slate-800 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  <panel.icon size={16} />
+                  {panel.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Panel Content */}
+            {activeStyle && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {activePanel === 'colors' && (
+                  <>
                     {[
                       { key: 'primaryColor', label: 'Primary' },
                       { key: 'secondaryColor', label: 'Secondary' },
                       { key: 'accentColor', label: 'Accent' },
                       { key: 'backgroundColor', label: 'Background' },
-                      { key: 'textColor', label: 'Text' },
                     ].map((color) => (
-                      <div key={color.key}>
-                        <label className="block text-sm font-medium text-slate-600 mb-2">
-                          {color.label}
-                        </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="color"
-                            value={formData[color.key]}
-                            onChange={(e) => handleChange(color.key, e.target.value)}
-                            className="w-16 h-12 rounded-lg border-2 border-slate-200 cursor-pointer"
-                          />
+                      <div key={color.key} className="flex items-center gap-3 p-2 bg-slate-50 rounded-xl">
+                        <input
+                          type="color"
+                          value={activeStyle[color.key]?.startsWith('#') ? activeStyle[color.key] : '#000000'}
+                          onChange={(e) => updateStyle(color.key, e.target.value)}
+                          className="w-10 h-10 rounded-lg border-2 border-white shadow-sm cursor-pointer"
+                        />
+                        <div className="flex-1">
+                          <label className="text-xs font-medium text-slate-500">
+                            {color.label} {isDarkMode && <span className="text-slate-400">(Dark)</span>}
+                          </label>
                           <input
                             type="text"
-                            value={formData[color.key]}
-                            onChange={(e) => handleChange(color.key, e.target.value)}
-                            className="flex-1 px-3 py-2 rounded-lg border-2 border-slate-200 focus:border-violet-500 outline-none text-sm font-mono"
+                            value={activeStyle[color.key] || ''}
+                            onChange={(e) => updateStyle(color.key, e.target.value)}
+                            className="w-full text-sm font-mono text-slate-700 bg-transparent outline-none"
                           />
                         </div>
                       </div>
                     ))}
-                  </div>
-                </div>
-
-                {/* Typography */}
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Font Family
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.fontFamily}
-                    onChange={(e) => handleChange('fontFamily', e.target.value)}
-                    placeholder="e.g., Inter, sans-serif"
-                    className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none transition-all"
-                  />
-                </div>
-
-                {/* Border Radius */}
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Border Radius
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.borderRadius}
-                    onChange={(e) => handleChange('borderRadius', e.target.value)}
-                    placeholder="e.g., 12px"
-                    className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none transition-all"
-                  />
-                </div>
-
-                {/* Shadow */}
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Shadow Style
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.shadowStyle}
-                    onChange={(e) => handleChange('shadowStyle', e.target.value)}
-                    placeholder="e.g., 0 4px 6px rgba(0,0,0,0.1)"
-                    className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none transition-all"
-                  />
-                </div>
-
-                {/* Gradient (Optional) */}
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Custom Gradient (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.gradientStyle}
-                    onChange={(e) => handleChange('gradientStyle', e.target.value)}
-                    placeholder="e.g., linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-                    className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none transition-all"
-                  />
-                  <p className="text-xs text-slate-500 mt-1">
-                    Leave empty to auto-generate from primary and secondary colors
-                  </p>
-                </div>
-
-                {/* Animation */}
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Animation Name
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.animationName}
-                    onChange={(e) => handleChange('animationName', e.target.value)}
-                    placeholder="e.g., fadeIn, slideUp"
-                    className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none transition-all"
-                  />
-                </div>
-
-                {/* Submit */}
-                <button
-                  type="submit"
-                  disabled={saving || !isSupabaseConfigured()}
-                  className="w-full flex items-center justify-center gap-3 px-8 py-4 text-white font-bold text-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-xl hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Save size={24} />
-                  {saving ? 'Creating...' : 'Create Style'}
-                </button>
-
-                {!isSupabaseConfigured() && (
-                  <p className="text-sm text-red-600 mt-2 text-center">
-                    ⚠️ Supabase not configured. Please setup database first.
-                  </p>
+                  </>
                 )}
-              </div>
-            </div>
 
-            {/* Live Preview */}
-            <div className="lg:sticky lg:top-24 h-fit">
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
-                <h2 className="text-2xl font-bold text-slate-900 mb-4">Live Preview</h2>
-                <motion.div
-                  key={JSON.stringify(formData)}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                  className="space-y-6"
-                >
-                  {/* Hero Preview */}
-                  <div
-                    className="rounded-2xl p-8 min-h-[350px] flex flex-col items-center justify-center text-center"
-                    style={{
-                      background:
-                        formData.gradientStyle ||
-                        `linear-gradient(135deg, ${formData.primaryColor} 0%, ${formData.secondaryColor} 100%)`,
-                      fontFamily: formData.fontFamily,
-                    }}
-                  >
-                    <h3 className="text-3xl font-bold mb-4" style={{ color: '#ffffff' }}>
-                      {formData.name || 'Your Style Name'}
-                    </h3>
-                    <p className="text-lg mb-6" style={{ color: 'rgba(255,255,255,0.9)' }}>
-                      This is how your style will look
-                    </p>
-                    <button
-                      className="px-6 py-3 font-semibold text-white"
-                      style={{
-                        backgroundColor: formData.accentColor,
-                        borderRadius: formData.borderRadius,
-                        boxShadow: formData.shadowStyle,
-                      }}
-                    >
-                      Sample Button
-                    </button>
-                  </div>
-
-                  {/* Card Preview */}
-                  <div
-                    className="p-6"
-                    style={{
-                      backgroundColor: formData.backgroundColor,
-                      borderRadius: formData.borderRadius,
-                      boxShadow: formData.shadowStyle,
-                      fontFamily: formData.fontFamily,
-                    }}
-                  >
-                    <h4
-                      className="text-xl font-bold mb-2"
-                      style={{ color: formData.primaryColor }}
-                    >
-                      Card Title
-                    </h4>
-                    <p className="mb-4" style={{ color: formData.textColor }}>
-                      This is sample text content showing how your text color looks on the
-                      background.
-                    </p>
-                    <button
-                      className="px-4 py-2 font-medium text-white"
-                      style={{
-                        backgroundColor: formData.accentColor,
-                        borderRadius: formData.borderRadius,
-                      }}
-                    >
-                      Action
-                    </button>
-                  </div>
-
-                  {/* Color Swatches */}
-                  <div>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3">Color Palette</h4>
-                    <div className="grid grid-cols-5 gap-2">
-                      {[
-                        { color: formData.primaryColor, label: 'Primary' },
-                        { color: formData.secondaryColor, label: 'Secondary' },
-                        { color: formData.accentColor, label: 'Accent' },
-                        { color: formData.backgroundColor, label: 'BG' },
-                        { color: formData.textColor, label: 'Text' },
-                      ].map((item, idx) => (
-                        <div key={idx} className="text-center">
-                          <div
-                            className="h-16 rounded-lg border-2 border-slate-200 mb-1"
-                            style={{ backgroundColor: item.color }}
-                          />
-                          <span className="text-xs text-slate-600 font-medium">
-                            {item.label}
-                          </span>
+                {activePanel === 'typography' && (
+                  <div className="col-span-full">
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowFontDropdown(!showFontDropdown)}
+                        className="w-full flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-slate-400 transition-colors"
+                        style={{ fontFamily: activeStyle.fontFamily }}
+                      >
+                        <span className="text-lg">{activeStyle.fontFamily?.split(',')[0]}</span>
+                        <ChevronDown size={16} className={`transition-transform ${showFontDropdown ? 'rotate-180' : ''}`} />
+                      </button>
+                      {showFontDropdown && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-72 overflow-y-auto">
+                          {Object.entries(FONT_OPTIONS).map(([category, fonts]) => (
+                            <div key={category}>
+                              <div className="px-4 py-2 text-xs font-bold text-slate-400 bg-slate-50 sticky top-0 uppercase tracking-wide">
+                                {category}
+                              </div>
+                              {fonts.map((font) => (
+                                <button
+                                  key={font}
+                                  onClick={() => {
+                                    updateStyle('fontFamily', font);
+                                    setShowFontDropdown(false);
+                                  }}
+                                  className={`w-full px-4 py-2 text-left hover:bg-slate-50 transition-colors flex items-center justify-between ${
+                                    activeStyle.fontFamily === font ? 'bg-slate-100 text-slate-900' : ''
+                                  }`}
+                                  style={{ fontFamily: font }}
+                                >
+                                  {font.split(',')[0]}
+                                  {activeStyle.fontFamily === font && <Check size={16} />}
+                                </button>
+                              ))}
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
                   </div>
-                </motion.div>
+                )}
+
+                {activePanel === 'layout' && (
+                  <>
+                    <div className="col-span-2">
+                      <label className="text-xs font-medium text-slate-500 mb-2 block">Border Radius</label>
+                      <div className="flex flex-wrap gap-2">
+                        {RADIUS_OPTIONS.map((radius) => (
+                          <button
+                            key={radius}
+                            onClick={() => updateStyle('borderRadius', radius)}
+                            className={`px-3 py-2 text-sm font-medium transition-all ${
+                              activeStyle.borderRadius === radius
+                                ? 'bg-slate-800 text-white'
+                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                            }`}
+                            style={{ borderRadius: radius === 'full' ? '9999px' : radius }}
+                          >
+                            {radius}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="text-xs font-medium text-slate-500 mb-2 block">Shadow</label>
+                      <div className="flex flex-wrap gap-2">
+                        {SHADOW_OPTIONS.map((shadow) => (
+                          <button
+                            key={shadow.label}
+                            onClick={() => updateStyle('shadowStyle', shadow.value)}
+                            className={`px-3 py-2 text-sm font-medium transition-all ${
+                              activeStyle.shadowStyle === shadow.value
+                                ? 'bg-slate-800 text-white'
+                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                            }`}
+                            style={{ borderRadius: '8px', boxShadow: shadow.value !== 'none' ? shadow.value : 'none' }}
+                          >
+                            {shadow.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
-            </div>
+            )}
+
+            {/* Footer Info */}
+            {activeStyle && (
+              <div className="mt-4 pt-4 border-t border-slate-100 flex items-center gap-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${isDarkMode ? 'bg-slate-700 text-white' : 'bg-amber-100 text-amber-700'}`}>
+                    {isDarkMode ? '🌙 Dark' : '☀️ Light'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400">Font:</span>
+                  <span className="font-medium" style={{ fontFamily: activeStyle.fontFamily }}>
+                    {activeStyle.fontFamily?.split(',')[0]}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400">Radius:</span>
+                  <span className="font-medium">{activeStyle.borderRadius}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-slate-400">Palette:</span>
+                  {[activeStyle.primaryColor, activeStyle.secondaryColor, activeStyle.accentColor].map((c, i) => (
+                    <div key={i} className="w-5 h-5 rounded-full border border-white shadow-sm" style={{ backgroundColor: c }} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        </form>
+        </div>
       </div>
     </>
   );

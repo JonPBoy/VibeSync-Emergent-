@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shuffle, Lock, Unlock, Download, Heart, Palette, Type, Square, Sparkles, ChevronDown, Check, Wand2, Dices, Sun, Moon } from 'lucide-react';
+import { Shuffle, Lock, Unlock, Download, Heart, Palette, Type, Square, Sparkles, ChevronDown, Check, Wand2, Dices, Sun, Moon, Settings } from 'lucide-react';
 import { MOCK_STYLES, generateRandomTheme } from '@/lib/mockStyles';
 import { downloadWPTheme } from '@/lib/wpThemeGenerator';
+import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 
 // Pre-defined particle positions to avoid hydration mismatch (no Math.random during render)
@@ -258,6 +259,7 @@ const getContrastColor = (hexColor) => {
 };
 
 export default function RandomizerPage() {
+  const router = useRouter();
   const [styles, setStyles] = useState([]);
   const [currentStyle, setCurrentStyle] = useState(null);
   const [darkModeStyle, setDarkModeStyle] = useState(null); // Separate dark mode style
@@ -274,6 +276,28 @@ export default function RandomizerPage() {
   const [isRollingDice, setIsRollingDice] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Navigate to full style editor with current style
+  const handleCustomize = () => {
+    if (!currentStyle) return;
+    // Save current style to localStorage temporarily for the editor to pick up
+    const tempStyle = {
+      ...currentStyle,
+      id: `temp-${Date.now()}`,
+      name: currentStyle.name || 'Custom Style',
+      category: 'custom',
+      darkMode: darkModeStyle ? {
+        backgroundColor: darkModeStyle.backgroundColor,
+        textColor: darkModeStyle.textColor,
+        cardBackground: darkModeStyle.cardBackground,
+        cardText: darkModeStyle.cardText,
+      } : null,
+    };
+    const customStyles = JSON.parse(localStorage.getItem('vibesync_custom_styles') || '[]');
+    customStyles.push(tempStyle);
+    localStorage.setItem('vibesync_custom_styles', JSON.stringify(customStyles));
+    router.push(`/style/${tempStyle.id}`);
+  };
 
   useEffect(() => {
     setIsMounted(true);
@@ -534,6 +558,15 @@ export default function RandomizerPage() {
                       ✨
                     </motion.span>
                   </motion.button>
+
+                  {/* Customize Button */}
+                  <button
+                    onClick={handleCustomize}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-slate-800/90 backdrop-blur-sm text-white font-bold rounded-full hover:bg-slate-900 hover:shadow-lg transition-all border border-slate-700/50"
+                  >
+                    <Settings size={18} />
+                    Customize
+                  </button>
                 </div>
 
                 {/* Lock Pills - Second row below buttons */}
