@@ -1041,282 +1041,124 @@ body {
               </div>
             ) : activeTab === 'cards' ? (
               <div>
-                {/* Card Styling Preview */}
-                <div className="mb-6">
-                  <h3 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
-                    <CreditCard size={18} className="text-violet-600" />
-                    Card Styling Preview
-                  </h3>
-                  <p className="text-sm text-slate-500 mb-4">
-                    See how cards will look with this theme in both light and dark modes
-                  </p>
+                {/* Compact Header with Mode Toggle */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <CreditCard size={16} className="text-violet-600" />
+                    <span className="font-medium text-slate-900 text-sm">Card Preview</span>
+                  </div>
+                  <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
+                    <button
+                      onClick={() => setDarkMode(false)}
+                      className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-all ${
+                        !darkMode ? 'bg-white shadow-sm text-violet-600 font-medium' : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      <Sun size={12} />
+                      Light
+                    </button>
+                    <button
+                      onClick={() => setDarkMode(true)}
+                      className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-all ${
+                        darkMode ? 'bg-slate-800 shadow-sm text-violet-400 font-medium' : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      <Moon size={12} />
+                      Dark
+                    </button>
+                  </div>
                 </div>
 
-                {/* Mode Toggle for Cards */}
-                <div className="flex items-center gap-4 mb-6 p-3 bg-slate-100 rounded-xl">
-                  <span className="text-sm font-medium text-slate-700">Preview Mode:</span>
-                  <button
-                    onClick={() => setDarkMode(false)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                      !darkMode ? 'bg-white shadow-md text-violet-600' : 'text-slate-500 hover:bg-white/50'
-                    }`}
-                  >
-                    <Sun size={16} />
-                    Light
-                  </button>
-                  <button
-                    onClick={() => setDarkMode(true)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                      darkMode ? 'bg-slate-800 shadow-md text-violet-400' : 'text-slate-500 hover:bg-slate-200'
-                    }`}
-                  >
-                    <Moon size={16} />
-                    Dark
-                  </button>
-                </div>
-
-                {/* Card Preview Area */}
+                {/* Compact Card Preview Area */}
                 {(() => {
                   const cardStyles = generateCardStyles(style, darkMode);
                   return (
                     <div 
-                      className="rounded-2xl p-8 transition-colors duration-300"
+                      className="rounded-xl p-3 transition-colors duration-300"
                       style={{
                         background: darkMode 
                           ? 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)'
                           : style.backgroundColor,
                       }}
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Basic Card */}
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                        {/* Mini Basic Card */}
                         <div
-                          className="group transition-all duration-300 cursor-pointer"
+                          className="transition-all duration-200 cursor-pointer p-3"
                           style={{
                             background: cardStyles.cardBackground,
                             border: cardStyles.cardBorder,
-                            borderRadius: cardStyles.cardRadius,
-                            padding: cardStyles.cardPadding,
+                            borderRadius: style.borderRadius,
                             boxShadow: cardStyles.cardShadow,
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.boxShadow = cardStyles.cardShadowHover;
-                            e.currentTarget.style.border = cardStyles.cardBorderHover;
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.boxShadow = cardStyles.cardShadow;
-                            e.currentTarget.style.border = cardStyles.cardBorder;
                           }}
                         >
                           <div 
-                            className="w-10 h-10 rounded-lg flex items-center justify-center mb-4"
+                            className="w-6 h-6 rounded flex items-center justify-center mb-2"
                             style={{ background: cardStyles.cardIconBg }}
                           >
-                            <Sparkles size={20} style={{ color: cardStyles.cardIconColor }} />
+                            <Sparkles size={12} style={{ color: cardStyles.cardIconColor }} />
                           </div>
-                          <h4 className="font-semibold mb-2" style={{ color: cardStyles.cardHeaderColor, fontFamily: selectedFont }}>
-                            Basic Card
-                          </h4>
-                          <p className="text-sm mb-4" style={{ color: cardStyles.cardMutedColor, fontFamily: selectedFont }}>
-                            A simple card with icon, title, and description text.
-                          </p>
-                          <div style={{ borderTop: `1px solid ${cardStyles.cardDivider}`, paddingTop: '12px', marginTop: '12px' }}>
-                            <span className="text-xs" style={{ color: cardStyles.cardMutedColor }}>Card Footer</span>
-                          </div>
+                          <h4 className="font-semibold text-xs mb-1" style={{ color: cardStyles.cardHeaderColor }}>Basic</h4>
+                          <p className="text-[10px] leading-tight" style={{ color: cardStyles.cardMutedColor }}>Simple card layout</p>
                         </div>
 
-                        {/* Featured Card */}
+                        {/* Mini Featured Card */}
                         <div
-                          className="group transition-all duration-300 cursor-pointer overflow-hidden"
+                          className="transition-all duration-200 overflow-hidden"
                           style={{
                             background: cardStyles.cardBackground,
-                            border: cardStyles.cardBorderHover,
-                            borderRadius: cardStyles.cardRadius,
-                            boxShadow: cardStyles.cardShadowHover,
+                            border: cardStyles.cardBorder,
+                            borderRadius: style.borderRadius,
+                            boxShadow: cardStyles.cardShadow,
                           }}
                         >
                           <div 
-                            className="h-24 w-full"
-                            style={{ 
-                              background: style.gradientStyle || `linear-gradient(135deg, ${style.primaryColor}, ${style.secondaryColor})`,
-                            }}
+                            className="h-8 w-full"
+                            style={{ background: style.gradientStyle || `linear-gradient(135deg, ${style.primaryColor}, ${style.secondaryColor})` }}
                           />
-                          <div style={{ padding: cardStyles.cardPadding }}>
-                            <span 
-                              className="inline-block px-2 py-1 text-xs font-semibold rounded-full mb-3"
-                              style={{ 
-                                background: `${style.primaryColor}20`, 
-                                color: cardStyles.cardHeaderColor 
-                              }}
-                            >
-                              Featured
-                            </span>
-                            <h4 className="font-semibold mb-2" style={{ color: cardStyles.cardHeaderColor, fontFamily: selectedFont }}>
-                              Featured Card
-                            </h4>
-                            <p className="text-sm" style={{ color: cardStyles.cardMutedColor, fontFamily: selectedFont }}>
-                              Card with gradient header and badge styling.
-                            </p>
+                          <div className="p-2">
+                            <span className="inline-block px-1.5 py-0.5 text-[9px] font-semibold rounded-full mb-1" style={{ background: `${style.primaryColor}20`, color: cardStyles.cardHeaderColor }}>Featured</span>
+                            <h4 className="font-semibold text-xs" style={{ color: cardStyles.cardHeaderColor }}>Header Card</h4>
                           </div>
                         </div>
 
-                        {/* Interactive Card */}
+                        {/* Mini Pricing Card */}
                         <div
-                          className="group transition-all duration-300 cursor-pointer"
+                          className="transition-all duration-200 p-3"
                           style={{
                             background: cardStyles.cardBackground,
                             border: cardStyles.cardBorder,
-                            borderRadius: cardStyles.cardRadius,
-                            padding: cardStyles.cardPadding,
+                            borderRadius: style.borderRadius,
                             boxShadow: cardStyles.cardShadow,
                           }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-4px)';
-                            e.currentTarget.style.boxShadow = cardStyles.cardShadowHover;
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = cardStyles.cardShadow;
-                          }}
                         >
-                          <h4 className="font-semibold mb-2" style={{ color: cardStyles.cardHeaderColor, fontFamily: selectedFont }}>
-                            Interactive Card
-                          </h4>
-                          <p className="text-sm mb-4" style={{ color: cardStyles.cardMutedColor, fontFamily: selectedFont }}>
-                            Hover to see the lift effect and shadow transition.
-                          </p>
-                          <button
-                            className="w-full py-2 text-sm font-semibold rounded-lg transition-all"
-                            style={{
-                              background: style.gradientStyle || `linear-gradient(135deg, ${style.primaryColor}, ${style.secondaryColor})`,
-                              color: '#ffffff',
-                              borderRadius: style.borderRadius,
-                            }}
-                          >
-                            Action Button
+                          <span className="text-[9px] font-semibold uppercase" style={{ color: cardStyles.cardMutedColor }}>Pro</span>
+                          <div className="mt-1">
+                            <span className="text-lg font-bold" style={{ color: cardStyles.cardHeaderColor }}>$29</span>
+                            <span className="text-[10px]" style={{ color: cardStyles.cardMutedColor }}>/mo</span>
+                          </div>
+                          <button className="w-full mt-2 py-1 text-[10px] font-semibold rounded" style={{ background: style.gradientStyle || `linear-gradient(135deg, ${style.primaryColor}, ${style.secondaryColor})`, color: '#fff', borderRadius: style.borderRadius }}>
+                            Start
                           </button>
                         </div>
 
-                        {/* Pricing Card */}
+                        {/* Mini Stats Card */}
                         <div
-                          className="group transition-all duration-300"
+                          className="transition-all duration-200 p-3"
                           style={{
                             background: cardStyles.cardBackground,
                             border: cardStyles.cardBorder,
-                            borderRadius: cardStyles.cardRadius,
-                            padding: cardStyles.cardPadding,
+                            borderRadius: style.borderRadius,
                             boxShadow: cardStyles.cardShadow,
                           }}
                         >
-                          <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: cardStyles.cardMutedColor }}>
-                            Pro Plan
-                          </span>
-                          <div className="mt-2 mb-4">
-                            <span className="text-3xl font-bold" style={{ color: cardStyles.cardHeaderColor }}>$29</span>
-                            <span className="text-sm" style={{ color: cardStyles.cardMutedColor }}>/month</span>
+                          <div className="flex justify-between items-start">
+                            <p className="text-[9px] font-medium uppercase" style={{ color: cardStyles.cardMutedColor }}>Revenue</p>
+                            <span className="px-1 py-0.5 rounded text-[9px] font-semibold" style={{ background: `${style.accentColor}20`, color: style.accentColor }}>+12%</span>
                           </div>
-                          <ul className="space-y-2 mb-4">
-                            {['Unlimited projects', 'Priority support', 'Custom integrations'].map((item, i) => (
-                              <li key={i} className="flex items-center gap-2 text-sm" style={{ color: cardStyles.cardTextColor }}>
-                                <Check size={14} style={{ color: style.accentColor }} />
-                                {item}
-                              </li>
-                            ))}
-                          </ul>
-                          <button
-                            className="w-full py-2 text-sm font-semibold rounded-lg border-2 transition-all hover:opacity-80"
-                            style={{
-                              borderColor: style.primaryColor,
-                              color: cardStyles.cardHeaderColor,
-                              borderRadius: style.borderRadius,
-                            }}
-                          >
-                            Get Started
-                          </button>
-                        </div>
-
-                        {/* Stats Card */}
-                        <div
-                          className="transition-all duration-300"
-                          style={{
-                            background: cardStyles.cardBackground,
-                            border: cardStyles.cardBorder,
-                            borderRadius: cardStyles.cardRadius,
-                            padding: cardStyles.cardPadding,
-                            boxShadow: cardStyles.cardShadow,
-                          }}
-                        >
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <p className="text-xs font-medium uppercase tracking-wide" style={{ color: cardStyles.cardMutedColor }}>
-                                Total Revenue
-                              </p>
-                              <p className="text-2xl font-bold mt-1" style={{ color: cardStyles.cardHeaderColor }}>
-                                $45,231
-                              </p>
-                            </div>
-                            <div 
-                              className="px-2 py-1 rounded-full text-xs font-semibold"
-                              style={{ background: `${style.accentColor}20`, color: style.accentColor }}
-                            >
-                              +12.5%
-                            </div>
-                          </div>
-                          <div 
-                            className="h-2 rounded-full overflow-hidden"
-                            style={{ background: cardStyles.cardDivider }}
-                          >
-                            <div 
-                              className="h-full rounded-full"
-                              style={{ 
-                                width: '75%',
-                                background: style.gradientStyle || `linear-gradient(135deg, ${style.primaryColor}, ${style.secondaryColor})`,
-                              }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* User Card */}
-                        <div
-                          className="transition-all duration-300"
-                          style={{
-                            background: cardStyles.cardBackground,
-                            border: cardStyles.cardBorder,
-                            borderRadius: cardStyles.cardRadius,
-                            padding: cardStyles.cardPadding,
-                            boxShadow: cardStyles.cardShadow,
-                          }}
-                        >
-                          <div className="flex items-center gap-4">
-                            <div 
-                              className="w-12 h-12 rounded-full flex items-center justify-center font-bold"
-                              style={{ 
-                                background: style.gradientStyle || `linear-gradient(135deg, ${style.primaryColor}, ${style.secondaryColor})`,
-                                color: '#ffffff',
-                              }}
-                            >
-                              JD
-                            </div>
-                            <div>
-                              <h4 className="font-semibold" style={{ color: cardStyles.cardHeaderColor }}>
-                                John Doe
-                              </h4>
-                              <p className="text-sm" style={{ color: cardStyles.cardMutedColor }}>
-                                Product Designer
-                              </p>
-                            </div>
-                          </div>
-                          <div 
-                            className="mt-4 pt-4 flex gap-4"
-                            style={{ borderTop: `1px solid ${cardStyles.cardDivider}` }}
-                          >
-                            <div className="text-center flex-1">
-                              <p className="font-bold" style={{ color: cardStyles.cardHeaderColor }}>142</p>
-                              <p className="text-xs" style={{ color: cardStyles.cardMutedColor }}>Projects</p>
-                            </div>
-                            <div className="text-center flex-1">
-                              <p className="font-bold" style={{ color: cardStyles.cardHeaderColor }}>8.2k</p>
-                              <p className="text-xs" style={{ color: cardStyles.cardMutedColor }}>Followers</p>
-                            </div>
+                          <p className="text-base font-bold mt-1" style={{ color: cardStyles.cardHeaderColor }}>$45k</p>
+                          <div className="h-1 rounded-full mt-2 overflow-hidden" style={{ background: cardStyles.cardDivider }}>
+                            <div className="h-full rounded-full" style={{ width: '75%', background: style.gradientStyle || `linear-gradient(135deg, ${style.primaryColor}, ${style.secondaryColor})` }} />
                           </div>
                         </div>
                       </div>
@@ -1324,55 +1166,48 @@ body {
                   );
                 })()}
 
-                {/* Card Style Properties */}
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-slate-50 rounded-xl">
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                      <Sun size={16} className="text-amber-500" />
-                      Light Mode Properties
-                    </h4>
+                {/* Compact Properties Side-by-Side */}
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="p-2 bg-slate-50 rounded-lg">
+                    <div className="flex items-center gap-1 mb-2">
+                      <Sun size={12} className="text-amber-500" />
+                      <span className="text-xs font-semibold text-slate-700">Light</span>
+                    </div>
                     {(() => {
                       const cs = generateCardStyles(style, false);
                       return (
-                        <div className="space-y-2 text-xs font-mono">
-                          <div className="flex justify-between"><span className="text-slate-500">Background:</span><span className="text-slate-700">{cs.cardBackground}</span></div>
-                          <div className="flex justify-between"><span className="text-slate-500">Border:</span><span className="text-slate-700 truncate ml-2">{cs.cardBorder}</span></div>
-                          <div className="flex justify-between"><span className="text-slate-500">Shadow:</span><span className="text-slate-700 truncate ml-2">{cs.cardShadow}</span></div>
-                          <div className="flex justify-between"><span className="text-slate-500">Radius:</span><span className="text-slate-700">{cs.cardRadius}</span></div>
-                          <div className="flex justify-between"><span className="text-slate-500">Header:</span><span className="text-slate-700">{cs.cardHeaderColor}</span></div>
-                          <div className="flex justify-between"><span className="text-slate-500">Text:</span><span className="text-slate-700">{cs.cardTextColor}</span></div>
+                        <div className="space-y-1 text-[10px] font-mono">
+                          <div className="flex justify-between"><span className="text-slate-400">bg:</span><span className="text-slate-600 truncate ml-1">{cs.cardBackground}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-400">border:</span><span className="text-slate-600 truncate ml-1">{cs.cardBorder.split(' ').pop()}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-400">radius:</span><span className="text-slate-600">{cs.cardRadius}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-400">text:</span><span className="text-slate-600">{cs.cardHeaderColor}</span></div>
                         </div>
                       );
                     })()}
                   </div>
-                  <div className="p-4 bg-slate-900 rounded-xl">
-                    <h4 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
-                      <Moon size={16} className="text-violet-400" />
-                      Dark Mode Properties
-                    </h4>
+                  <div className="p-2 bg-slate-900 rounded-lg">
+                    <div className="flex items-center gap-1 mb-2">
+                      <Moon size={12} className="text-violet-400" />
+                      <span className="text-xs font-semibold text-slate-200">Dark</span>
+                    </div>
                     {(() => {
                       const cs = generateCardStyles(style, true);
                       return (
-                        <div className="space-y-2 text-xs font-mono">
-                          <div className="flex justify-between"><span className="text-slate-400">Background:</span><span className="text-slate-200">{cs.cardBackground}</span></div>
-                          <div className="flex justify-between"><span className="text-slate-400">Border:</span><span className="text-slate-200 truncate ml-2">{cs.cardBorder}</span></div>
-                          <div className="flex justify-between"><span className="text-slate-400">Shadow:</span><span className="text-slate-200 truncate ml-2">{cs.cardShadow}</span></div>
-                          <div className="flex justify-between"><span className="text-slate-400">Radius:</span><span className="text-slate-200">{cs.cardRadius}</span></div>
-                          <div className="flex justify-between"><span className="text-slate-400">Header:</span><span className="text-slate-200">{cs.cardHeaderColor}</span></div>
-                          <div className="flex justify-between"><span className="text-slate-400">Text:</span><span className="text-slate-200">{cs.cardTextColor}</span></div>
+                        <div className="space-y-1 text-[10px] font-mono">
+                          <div className="flex justify-between"><span className="text-slate-500">bg:</span><span className="text-slate-300 truncate ml-1">{cs.cardBackground}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-500">border:</span><span className="text-slate-300 truncate ml-1">{cs.cardBorder.split(' ').pop()}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-500">radius:</span><span className="text-slate-300">{cs.cardRadius}</span></div>
+                          <div className="flex justify-between"><span className="text-slate-500">text:</span><span className="text-slate-300">{cs.cardHeaderColor}</span></div>
                         </div>
                       );
                     })()}
                   </div>
                 </div>
 
-                {/* Info */}
-                <div className="mt-4 p-4 bg-violet-50 rounded-xl">
-                  <h4 className="text-sm font-semibold text-violet-700 mb-2">💡 Card Styling in AI Export</h4>
-                  <p className="text-xs text-violet-600">
-                    All card styling properties are automatically included when you copy AI instructions. Use the "Copy AI" button to get complete styling guidance for Bolt, Cursor, or Lovable.
-                  </p>
-                </div>
+                {/* Compact Info */}
+                <p className="mt-2 text-[10px] text-slate-500 text-center">
+                  💡 Full card styling included in AI export
+                </p>
               </div>
             ) : (
               <div>
