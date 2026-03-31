@@ -88,7 +88,13 @@ export default function StyleEditorPage() {
     // Gradient
     useGradient: true,
     gradientColors: ['#8B5CF6', '#6366F1'],
+    // Gradient Text settings
     applyGradientText: false,
+    gradientTextH1: true,
+    gradientTextH2: false,
+    gradientTextH3: false,
+    gradientTextColor1: '#8B5CF6',
+    gradientTextColor2: '#EC4899',
     // Effects
     animationStyle: 'fade',
     borderRadius: 12,
@@ -338,7 +344,7 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
       {/* Main Content */}
       <div className="flex">
         {/* Left Sidebar */}
-        <div className="w-64 bg-white border-r border-slate-200 min-h-[calc(100vh-73px)] flex flex-col sticky top-[73px] z-40">
+        <div className="w-72 bg-white border-r border-slate-200 min-h-[calc(100vh-73px)] flex flex-col sticky top-[73px] z-40">
           {/* Tabs */}
           <div className="flex border-b border-slate-200">
             {[
@@ -475,12 +481,12 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
                     { key: 'h3', label: 'H3', fontKey: 'h3Font', colorKey: 'h3Color' },
                     { key: 'body', label: 'Body', fontKey: 'bodyFont', colorKey: 'bodyColor' },
                   ].map((item) => (
-                    <div key={item.key} className="flex items-center gap-3 mb-4">
-                      <span className="w-12 text-sm font-medium text-slate-600">{item.label}</span>
+                    <div key={item.key} className="flex items-center gap-2 mb-4">
+                      <span className="w-10 text-sm font-bold text-slate-700">{item.label}</span>
                       <select
                         value={styleConfig[item.fontKey]}
                         onChange={(e) => updateConfig(item.fontKey, e.target.value)}
-                        className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                        className="flex-1 px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
                         style={{ fontFamily: styleConfig[item.fontKey] }}
                       >
                         {FONT_OPTIONS.map((font) => (
@@ -489,12 +495,17 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
                           </option>
                         ))}
                       </select>
-                      <input
-                        type="color"
-                        value={styleConfig[item.colorKey]}
-                        onChange={(e) => updateConfig(item.colorKey, e.target.value)}
-                        className="w-10 h-10 rounded-lg border border-slate-200 cursor-pointer"
-                      />
+                      <div 
+                        className="relative w-12 h-12 rounded-lg border-2 border-slate-200 overflow-hidden cursor-pointer hover:border-violet-400 transition-colors"
+                        style={{ backgroundColor: styleConfig[item.colorKey] }}
+                      >
+                        <input
+                          type="color"
+                          value={styleConfig[item.colorKey]}
+                          onChange={(e) => updateConfig(item.colorKey, e.target.value)}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -509,7 +520,7 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
                     <select
                       value={styleConfig.listStyle}
                       onChange={(e) => updateConfig('listStyle', e.target.value)}
-                      className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-500"
+                      className="flex-1 px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-500"
                     >
                       {LIST_STYLE_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -518,13 +529,18 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
                       ))}
                     </select>
                     <div className="text-center">
-                      <span className="text-xs text-slate-400 block">Icon</span>
-                      <input
-                        type="color"
-                        value={styleConfig.listColor}
-                        onChange={(e) => updateConfig('listColor', e.target.value)}
-                        className="w-10 h-10 rounded-lg border border-slate-200 cursor-pointer"
-                      />
+                      <span className="text-xs text-slate-400 block mb-1">Icon</span>
+                      <div 
+                        className="relative w-12 h-12 rounded-lg border-2 border-slate-200 overflow-hidden cursor-pointer hover:border-violet-400 transition-colors"
+                        style={{ backgroundColor: styleConfig.listColor }}
+                      >
+                        <input
+                          type="color"
+                          value={styleConfig.listColor}
+                          onChange={(e) => updateConfig('listColor', e.target.value)}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -535,7 +551,9 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
                     <Sparkles size={16} className="text-violet-500" />
                     Gradient Text
                   </h3>
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  
+                  {/* Main toggle */}
+                  <label className="flex items-center gap-2 cursor-pointer mb-4">
                     <input
                       type="checkbox"
                       checked={styleConfig.applyGradientText}
@@ -544,6 +562,68 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
                     />
                     <span className="text-sm text-slate-600">Apply Gradient to Headings</span>
                   </label>
+                  
+                  {/* Gradient settings - only show when enabled */}
+                  {styleConfig.applyGradientText && (
+                    <div className="pl-6 space-y-3 border-l-2 border-violet-200">
+                      {/* Which headings */}
+                      <div className="space-y-2">
+                        <span className="text-xs font-medium text-slate-500">Apply to:</span>
+                        {[
+                          { key: 'gradientTextH1', label: 'H1 Heading' },
+                          { key: 'gradientTextH2', label: 'H2 Heading' },
+                          { key: 'gradientTextH3', label: 'H3 Heading' },
+                        ].map((item) => (
+                          <label key={item.key} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={styleConfig[item.key]}
+                              onChange={(e) => updateConfig(item.key, e.target.checked)}
+                              className="w-3.5 h-3.5 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                            />
+                            <span className="text-sm text-slate-600">{item.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                      
+                      {/* Gradient colors */}
+                      <div className="space-y-2">
+                        <span className="text-xs font-medium text-slate-500">Gradient Colors:</span>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="relative w-10 h-10 rounded-lg border-2 border-slate-200 overflow-hidden cursor-pointer hover:border-violet-400 transition-colors"
+                            style={{ backgroundColor: styleConfig.gradientTextColor1 }}
+                          >
+                            <input
+                              type="color"
+                              value={styleConfig.gradientTextColor1}
+                              onChange={(e) => updateConfig('gradientTextColor1', e.target.value)}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            />
+                          </div>
+                          <span className="text-slate-400">→</span>
+                          <div 
+                            className="relative w-10 h-10 rounded-lg border-2 border-slate-200 overflow-hidden cursor-pointer hover:border-violet-400 transition-colors"
+                            style={{ backgroundColor: styleConfig.gradientTextColor2 }}
+                          >
+                            <input
+                              type="color"
+                              value={styleConfig.gradientTextColor2}
+                              onChange={(e) => updateConfig('gradientTextColor2', e.target.value)}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            />
+                          </div>
+                          {/* Preview */}
+                          <div 
+                            className="flex-1 h-10 rounded-lg"
+                            style={{ 
+                              background: `linear-gradient(90deg, ${styleConfig.gradientTextColor1}, ${styleConfig.gradientTextColor2})`
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -595,7 +675,7 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
 
             {/* Export Tab */}
             {activeTab === 'export' && (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-4">
                   <Code size={16} className="text-violet-500" />
                   Export Options
@@ -604,16 +684,16 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
                 {/* Export as JSON */}
                 <button
                   onClick={handleExportJSON}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-white border-2 border-slate-200 rounded-xl text-violet-600 font-medium hover:border-violet-300 hover:bg-violet-50 transition-all"
                 >
-                  <FileJson size={18} className="text-violet-500" />
+                  <FileJson size={18} />
                   Export as JSON
                 </button>
                 
                 {/* Import JSON */}
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 hover:bg-emerald-100 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-emerald-50 border-2 border-emerald-200 rounded-xl text-emerald-600 font-medium hover:bg-emerald-100 hover:border-emerald-300 transition-all"
                 >
                   <Upload size={18} />
                   Import JSON
@@ -626,11 +706,17 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
                   className="hidden"
                 />
                 
+                {/* Spacer/Divider */}
+                <div className="h-2" />
+                
                 {/* WordPress Theme */}
                 <button
                   onClick={handleExportWP}
                   disabled={downloading}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-4 text-white font-semibold rounded-xl transition-all disabled:opacity-50 hover:shadow-lg hover:scale-[1.02]"
+                  style={{
+                    background: 'linear-gradient(135deg, #A855F7 0%, #7C3AED 100%)',
+                  }}
                 >
                   <Download size={18} />
                   WordPress Theme (.zip)
@@ -639,7 +725,10 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
                 {/* Copy AI Instructions */}
                 <button
                   onClick={handleCopyAI}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-4 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:scale-[1.02]"
+                  style={{
+                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                  }}
                 >
                   {copied ? <Check size={18} /> : <Sparkles size={18} />}
                   {copied ? 'Copied!' : 'Copy AI Instructions'}
@@ -677,21 +766,28 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
                 className="text-5xl font-bold mb-4"
                 style={{ 
                   fontFamily: styleConfig.h1Font,
-                  color: '#ffffff',
-                  ...(styleConfig.applyGradientText && styleConfig.useGradient ? {
-                    background: `linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.8) 100%)`,
+                  ...(styleConfig.applyGradientText && styleConfig.gradientTextH1 ? {
+                    background: `linear-gradient(135deg, ${styleConfig.gradientTextColor1} 0%, ${styleConfig.gradientTextColor2} 100%)`,
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
-                  } : {})
+                  } : {
+                    color: '#ffffff',
+                  })
                 }}
               >
                 {style.name}
               </motion.h1>
               <p 
-                className="text-xl mb-6 opacity-90"
+                className="text-xl mb-6"
                 style={{ 
                   fontFamily: styleConfig.h2Font,
-                  color: 'rgba(255,255,255,0.9)'
+                  ...(styleConfig.applyGradientText && styleConfig.gradientTextH2 ? {
+                    background: `linear-gradient(135deg, ${styleConfig.gradientTextColor1} 0%, ${styleConfig.gradientTextColor2} 100%)`,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  } : {
+                    color: 'rgba(255,255,255,0.9)',
+                  })
                 }}
               >
                 A beautiful design style for your next project
@@ -717,7 +813,13 @@ This style is called "${style?.name || 'Custom Style'}" and belongs to the ${sty
                 className="text-2xl font-semibold mb-6"
                 style={{ 
                   fontFamily: styleConfig.h2Font,
-                  color: styleConfig.accentColor,
+                  ...(styleConfig.applyGradientText && styleConfig.gradientTextH2 ? {
+                    background: `linear-gradient(135deg, ${styleConfig.gradientTextColor1} 0%, ${styleConfig.gradientTextColor2} 100%)`,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  } : {
+                    color: styleConfig.accentColor,
+                  })
                 }}
               >
                 Key Features
