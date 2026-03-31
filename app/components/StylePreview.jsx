@@ -1443,79 +1443,90 @@ body {
             )}
           </div>
 
-          {/* Footer Actions */}
+          {/* Footer Actions - Optimized Layout */}
           <div className="p-4 border-t border-slate-200 bg-slate-50 space-y-3">
-            {/* PROMINENT: Copy AI Instructions Button */}
-            <button
-              onClick={handleCopyAIInstructions}
-              className="w-full flex items-center justify-center gap-3 px-6 py-4 text-white font-bold bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-xl hover:shadow-xl hover:scale-[1.02] transition-all group"
-            >
-              <Wand2 size={22} className="group-hover:rotate-12 transition-transform" />
-              {copiedAI ? 'Copied to Clipboard! ✓' : 'Copy AI Instructions'}
-              <span className="text-xs opacity-80 font-normal">for Bolt, Lovable, Cursor</span>
-            </button>
+            {/* Primary Actions Row */}
+            <div className="flex gap-2">
+              {/* Copy AI Instructions - Primary CTA */}
+              <button
+                onClick={handleCopyAIInstructions}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-white font-semibold bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl hover:shadow-lg hover:scale-[1.01] transition-all"
+              >
+                <Wand2 size={18} />
+                {copiedAI ? 'Copied! ✓' : 'Copy AI'}
+              </button>
+              
+              {/* Export WordPress Theme */}
+              <button
+                onClick={handleExportWPTheme}
+                disabled={downloading}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-white font-semibold bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-xl hover:shadow-lg hover:scale-[1.01] transition-all disabled:opacity-50"
+              >
+                <Download size={18} />
+                {downloading ? 'Exporting...' : 'Export WP'}
+              </button>
+            </div>
 
-            {/* Show AI Instructions Preview */}
-            <button 
-              onClick={() => setShowAIInstructions(!showAIInstructions)}
-              className="w-full text-center text-sm text-slate-500 hover:text-violet-600 transition"
-            >
-              {showAIInstructions ? 'Hide' : 'Preview'} AI Instructions
-            </button>
+            {/* Secondary Actions Row */}
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setDarkMode(!darkMode)} 
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition text-sm text-slate-700"
+              >
+                {darkMode ? <Sun size={15} /> : <Moon size={15} />}
+                <span className="hidden sm:inline">{darkMode ? 'Light' : 'Dark'}</span>
+              </button>
+              <button 
+                onClick={() => { navigator.clipboard.writeText(shareUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); }} 
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition text-sm text-slate-700"
+              >
+                <Share2 size={15} />
+                <span className="hidden sm:inline">{copied ? 'Copied!' : 'Share'}</span>
+              </button>
+              <button 
+                onClick={() => setShowCollections(!showCollections)} 
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition text-sm text-slate-700"
+              >
+                <FolderPlus size={15} />
+                <span className="hidden sm:inline">Collection</span>
+              </button>
+              <button 
+                onClick={() => setShowAIInstructions(!showAIInstructions)}
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition text-sm text-slate-700"
+              >
+                <Code size={15} />
+                <span className="hidden sm:inline">Preview</span>
+              </button>
+            </div>
 
+            {/* AI Instructions Preview (Expandable) */}
             {showAIInstructions && (
               <div className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs font-mono max-h-48 overflow-y-auto whitespace-pre-wrap">
                 {generateAIInstructions(style, true)}
               </div>
             )}
 
-            {/* Quick Actions Row */}
-            <div className="flex gap-2">
-              <button onClick={() => setDarkMode(!darkMode)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 rounded-lg hover:bg-slate-300 transition text-sm">
-                {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-                {darkMode ? 'Light' : 'Dark'} Preview
-              </button>
-              <button onClick={() => { navigator.clipboard.writeText(shareUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 rounded-lg hover:bg-slate-300 transition text-sm">
-                <Share2 size={16} />
-                {copied ? 'Link Copied!' : 'Share Style'}
-              </button>
-              <button onClick={() => setShowCollections(!showCollections)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 rounded-lg hover:bg-slate-300 transition text-sm">
-                <FolderPlus size={16} />
-                Add to Collection
-              </button>
-            </div>
-
             {/* Collections Dropdown */}
             {showCollections && (
-              <div className="p-3 bg-white rounded-lg border">
-                <p className="text-sm font-medium mb-2">Add to Collection</p>
+              <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
+                <p className="text-sm font-medium mb-2 text-slate-700">Add to Collection</p>
                 <div className="space-y-1 max-h-32 overflow-y-auto mb-2">
                   {collections.length === 0 ? (
                     <p className="text-xs text-slate-400">No collections yet</p>
                   ) : (
                     collections.map(col => (
-                      <button key={col.id} onClick={() => { addToCollection(col.id, style); setShowCollections(false); }} className="w-full text-left px-3 py-2 text-sm hover:bg-violet-50 rounded-lg">
+                      <button key={col.id} onClick={() => { addToCollection(col.id, style); setShowCollections(false); }} className="w-full text-left px-3 py-2 text-sm hover:bg-violet-50 rounded-lg transition">
                         {col.name} ({col.styles.length})
                       </button>
                     ))
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <input type="text" value={newCollectionName} onChange={e => setNewCollectionName(e.target.value)} placeholder="New collection..." className="flex-1 px-2 py-1 text-sm border rounded" />
-                  <button onClick={() => { if (newCollectionName.trim()) { const col = createCollection(newCollectionName); addToCollection(col.id, style); setNewCollectionName(''); setCollections(getCollections()); } }} className="px-3 py-1 text-sm bg-violet-600 text-white rounded">Add</button>
+                  <input type="text" value={newCollectionName} onChange={e => setNewCollectionName(e.target.value)} placeholder="New collection..." className="flex-1 px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none" />
+                  <button onClick={() => { if (newCollectionName.trim()) { const col = createCollection(newCollectionName); addToCollection(col.id, style); setNewCollectionName(''); setCollections(getCollections()); } }} className="px-3 py-1.5 text-sm bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition">Create</button>
                 </div>
               </div>
             )}
-
-            {/* Export Button */}
-            <button
-              onClick={handleExportWPTheme}
-              disabled={downloading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 text-white font-semibold bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Download size={20} />
-              {downloading ? 'Generating...' : 'Export as WordPress Theme'}
-            </button>
           </div>
         </motion.div>
       </motion.div>
