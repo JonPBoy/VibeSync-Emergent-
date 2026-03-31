@@ -8,6 +8,7 @@ import { generatePalette } from '@/lib/colorUtils';
 import { generateTailwindConfig, generateSCSS, generateReactComponent, generateVueComponent, generateFigmaCSS, generateJSON, generateShareURL } from '@/lib/exportUtils';
 import { addToHistory, getCollections, addToCollection, createCollection } from '@/lib/styleHistory';
 import { generateAIInstructions, generateCardStyles } from '@/lib/mockStyles';
+import { copyToClipboard } from '@/lib/clipboard';
 import ThemeCustomizer from './ThemeCustomizer';
 
 // Available fonts organized by category
@@ -243,11 +244,13 @@ export default function StylePreview({ style, onClose }) {
   const palette = generatePalette(currentStyle.primaryColor);
 
   // Copy AI instructions handler
-  const handleCopyAIInstructions = () => {
+  const handleCopyAIInstructions = async () => {
     const instructions = generateAIInstructions(currentStyle, true);
-    navigator.clipboard.writeText(instructions);
-    setCopiedAI(true);
-    setTimeout(() => setCopiedAI(false), 2000);
+    const success = await copyToClipboard(instructions);
+    if (success) {
+      setCopiedAI(true);
+      setTimeout(() => setCopiedAI(false), 2000);
+    }
   };
 
   // Handle customized style save
@@ -1245,9 +1248,12 @@ body {
                         showExportMenu === 'Vue' ? generateVueComponent(style) :
                         showExportMenu === 'Figma' ? generateFigmaCSS(style) :
                         showExportMenu === 'JSON' ? generateJSON(style) : cssVariables;
-                      navigator.clipboard.writeText(code);
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 2000);
+                      copyToClipboard(code).then(success => {
+                        if (success) {
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 2000);
+                        }
+                      });
                     }}
                     className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors"
                   >
@@ -1275,7 +1281,7 @@ body {
                     <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
                       {Object.entries(palette).map(([name, color]) => (
                         <div key={name} className="text-center">
-                          <div className="w-full h-12 rounded-lg border mb-1 cursor-pointer hover:scale-105 transition" style={{ backgroundColor: color }} onClick={() => navigator.clipboard.writeText(color)} title={`Click to copy ${color}`} />
+                          <div className="w-full h-12 rounded-lg border mb-1 cursor-pointer hover:scale-105 transition" style={{ backgroundColor: color }} onClick={() => copyToClipboard(color)} title={`Click to copy ${color}`} />
                           <p className="text-xs text-slate-600 capitalize">{name.replace(/([A-Z])/g, ' $1')}</p>
                           <p className="text-xs text-slate-400">{color}</p>
                         </div>
@@ -1330,7 +1336,13 @@ body {
                 <span className="hidden sm:inline">{darkMode ? 'Light' : 'Dark'}</span>
               </button>
               <button 
-                onClick={() => { navigator.clipboard.writeText(shareUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); }} 
+                onClick={async () => { 
+                  const success = await copyToClipboard(shareUrl); 
+                  if (success) {
+                    setCopied(true); 
+                    setTimeout(() => setCopied(false), 2000); 
+                  }
+                }} 
                 className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition text-sm text-slate-700"
               >
                 <Share2 size={15} />

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Heart, Copy, Eye, Wand2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { generateAIInstructions } from '@/lib/mockStyles';
+import { copyToClipboard } from '@/lib/clipboard';
 
 // Get contrasting color for text
 const getContrastColor = (hexColor) => {
@@ -54,7 +55,7 @@ export default function StyleCard({ style, onPreview }) {
     window.dispatchEvent(new Event('storage'));
   };
 
-  const copyCSS = (e) => {
+  const copyCSS = async (e) => {
     e.stopPropagation();
     const css = `/* ${style.name} */
 :root {
@@ -68,17 +69,21 @@ export default function StyleCard({ style, onPreview }) {
   --shadow-style: ${style.shadowStyle};
   --gradient-style: ${style.gradientStyle || `linear-gradient(135deg, ${style.primaryColor}, ${style.secondaryColor})`};
 }`;
-    navigator.clipboard.writeText(css);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    const success = await copyToClipboard(css);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
-  const copyAIInstructions = (e) => {
+  const copyAIInstructions = async (e) => {
     e.stopPropagation();
     const instructions = generateAIInstructions(style, true);
-    navigator.clipboard.writeText(instructions);
-    setCopiedAI(true);
-    setTimeout(() => setCopiedAI(false), 2000);
+    const success = await copyToClipboard(instructions);
+    if (success) {
+      setCopiedAI(true);
+      setTimeout(() => setCopiedAI(false), 2000);
+    }
   };
 
   return (
