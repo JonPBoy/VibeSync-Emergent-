@@ -2,109 +2,202 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, RotateCcw, Palette, Type, Layout, Zap, Square, MousePointer, Sparkles } from 'lucide-react';
+import { X, Save, RotateCcw, ChevronUp, ChevronDown, Palette, Type, Layout, Zap, Square, MousePointer, Sparkles, Eye } from 'lucide-react';
 
-// Font options
-const FONT_OPTIONS = [
-  'Inter, sans-serif',
-  'Poppins, sans-serif',
-  'Roboto, sans-serif',
-  'Open Sans, sans-serif',
-  'Montserrat, sans-serif',
-  'Playfair Display, serif',
-  'Merriweather, serif',
-  'Lora, serif',
-  'Bebas Neue, sans-serif',
-  'Oswald, sans-serif',
-  'Fira Code, monospace',
-  'JetBrains Mono, monospace',
+// Font options organized by category
+const FONT_OPTIONS = {
+  'Sans Serif': [
+    'Inter', 'Roboto', 'Open Sans', 'Lato', 'Poppins', 'Montserrat', 
+    'Nunito', 'Work Sans', 'DM Sans', 'Plus Jakarta Sans'
+  ],
+  'Serif': [
+    'Playfair Display', 'Merriweather', 'Lora', 'Libre Baskerville',
+    'Cormorant Garamond', 'Crimson Text', 'EB Garamond', 'Spectral'
+  ],
+  'Display': [
+    'Bebas Neue', 'Oswald', 'Anton', 'Archivo Black', 'Alfa Slab One',
+    'Righteous', 'Bungee', 'Russo One', 'Teko', 'Fjalla One'
+  ],
+  'Monospace': [
+    'Fira Code', 'JetBrains Mono', 'Source Code Pro'
+  ],
+  'Handwriting': [
+    'Pacifico', 'Dancing Script', 'Satisfy', 'Caveat', 'Indie Flower', 'Patrick Hand'
+  ]
+};
+
+// List style options
+const LIST_STYLES = [
+  { value: 'disc', label: '● Disc' },
+  { value: 'circle', label: '○ Circle' },
+  { value: 'square', label: '■ Square' },
+  { value: 'decimal', label: '1. Numbers' },
+  { value: 'lower-alpha', label: 'a. Letters' },
+  { value: 'lower-roman', label: 'i. Roman' },
+  { value: 'none', label: 'None' },
 ];
 
-// Border radius presets
-const RADIUS_PRESETS = [
-  { label: 'None', value: '0px' },
-  { label: 'Subtle', value: '4px' },
-  { label: 'Small', value: '6px' },
-  { label: 'Medium', value: '8px' },
-  { label: 'Large', value: '12px' },
-  { label: 'XL', value: '16px' },
-  { label: '2XL', value: '20px' },
-  { label: 'Full', value: '9999px' },
-];
+// Number Stepper Component
+const NumberStepper = ({ label, value, onChange, min = 0, max = 100, step = 1, unit = 'px', small = false }) => {
+  const numValue = parseFloat(value) || 0;
+  
+  const increment = () => onChange(Math.min(max, numValue + step) + unit);
+  const decrement = () => onChange(Math.max(min, numValue - step) + unit);
+  
+  return (
+    <div className={`flex items-center justify-between ${small ? 'py-1' : 'py-2'}`}>
+      <label className={`text-slate-600 ${small ? 'text-xs' : 'text-sm'}`}>{label}</label>
+      <div className="flex items-center gap-1">
+        <button 
+          onClick={decrement}
+          className="w-7 h-7 flex items-center justify-center bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+        >
+          <ChevronDown size={14} />
+        </button>
+        <div className="w-16 text-center">
+          <span className="text-sm font-medium">{numValue}</span>
+          <span className="text-xs text-slate-400 ml-0.5">{unit}</span>
+        </div>
+        <button 
+          onClick={increment}
+          className="w-7 h-7 flex items-center justify-center bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+        >
+          <ChevronUp size={14} />
+        </button>
+      </div>
+    </div>
+  );
+};
 
-// Shadow presets
-const SHADOW_PRESETS = [
-  { label: 'None', value: 'none' },
-  { label: 'Subtle', value: '0 1px 2px rgba(0,0,0,0.05)' },
-  { label: 'Small', value: '0 2px 4px rgba(0,0,0,0.1)' },
-  { label: 'Medium', value: '0 4px 6px rgba(0,0,0,0.1)' },
-  { label: 'Large', value: '0 8px 16px rgba(0,0,0,0.15)' },
-  { label: 'XL', value: '0 12px 24px rgba(0,0,0,0.2)' },
-  { label: 'Glow', value: '0 0 20px rgba(139,92,246,0.3)' },
-  { label: 'Sharp', value: '4px 4px 0px rgba(0,0,0,0.2)' },
-];
+// Slider Component
+const SliderInput = ({ label, value, onChange, min, max, step = 1, unit = '', showValue = true }) => {
+  const numValue = parseFloat(value) || min;
+  
+  return (
+    <div className="py-2">
+      <div className="flex items-center justify-between mb-1">
+        <label className="text-sm text-slate-600">{label}</label>
+        {showValue && (
+          <span className="text-sm font-medium text-violet-600">{numValue}{unit}</span>
+        )}
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={numValue}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-violet-600"
+      />
+    </div>
+  );
+};
 
-// Spacing presets
-const SPACING_PRESETS = [
-  { label: 'Compact', value: '4px' },
-  { label: 'Tight', value: '8px' },
-  { label: 'Normal', value: '16px' },
-  { label: 'Relaxed', value: '24px' },
-  { label: 'Loose', value: '32px' },
-];
+// Font Selector Component
+const FontSelector = ({ label, value, onChange, showPreview = true }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const fontName = value?.split(',')[0] || 'Inter';
+  
+  return (
+    <div className="py-2">
+      <label className="text-sm text-slate-600 block mb-1">{label}</label>
+      <div className="relative">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full px-3 py-2 text-left bg-white border border-slate-200 rounded-lg hover:border-violet-400 transition flex items-center justify-between"
+          style={{ fontFamily: value }}
+        >
+          <span className="text-sm">{fontName}</span>
+          <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        </button>
+        
+        {isOpen && (
+          <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+            {Object.entries(FONT_OPTIONS).map(([category, fonts]) => (
+              <div key={category}>
+                <div className="px-3 py-1 text-xs font-semibold text-slate-400 bg-slate-50 sticky top-0">
+                  {category}
+                </div>
+                {fonts.map((font) => (
+                  <button
+                    key={font}
+                    onClick={() => {
+                      onChange(`${font}, ${category === 'Monospace' ? 'monospace' : category === 'Serif' ? 'serif' : 'sans-serif'}`);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full px-3 py-2 text-left text-sm hover:bg-violet-50 transition ${
+                      fontName === font ? 'bg-violet-100 text-violet-700' : ''
+                    }`}
+                    style={{ fontFamily: `${font}, ${category === 'Monospace' ? 'monospace' : category === 'Serif' ? 'serif' : 'sans-serif'}` }}
+                  >
+                    {font}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
-// Animation presets
-const ANIMATION_PRESETS = [
-  { label: 'None', value: 'none', duration: '0ms' },
-  { label: 'Instant', value: 'ease', duration: '100ms' },
-  { label: 'Fast', value: 'ease-out', duration: '150ms' },
-  { label: 'Normal', value: 'ease-in-out', duration: '200ms' },
-  { label: 'Smooth', value: 'ease-in-out', duration: '300ms' },
-  { label: 'Slow', value: 'ease-in-out', duration: '500ms' },
-];
-
-// Border width presets
-const BORDER_PRESETS = [
-  { label: 'None', value: '0px' },
-  { label: 'Hairline', value: '1px' },
-  { label: 'Thin', value: '2px' },
-  { label: 'Medium', value: '3px' },
-  { label: 'Thick', value: '4px' },
-];
-
-// Button style presets
-const BUTTON_STYLES = [
-  { label: 'Normal', textTransform: 'none', fontWeight: '600' },
-  { label: 'Uppercase', textTransform: 'uppercase', fontWeight: '600' },
-  { label: 'Bold', textTransform: 'none', fontWeight: '700' },
-  { label: 'Light', textTransform: 'none', fontWeight: '500' },
-];
+// Color Input Component
+const ColorInput = ({ label, value, onChange }) => (
+  <div className="flex items-center justify-between py-2">
+    <label className="text-sm text-slate-600">{label}</label>
+    <div className="flex items-center gap-2">
+      <input
+        type="color"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-8 h-8 rounded-lg cursor-pointer border-2 border-slate-200 hover:border-violet-400 transition"
+      />
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-20 px-2 py-1 text-xs font-mono border border-slate-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none"
+      />
+    </div>
+  </div>
+);
 
 export default function ThemeCustomizer({ style, onClose, onSave }) {
   const [customStyle, setCustomStyle] = useState({
     ...style,
-    // Additional UI/UX properties with defaults
-    spacing: style.spacing || '16px',
-    borderWidth: style.borderWidth || '1px',
-    transitionDuration: style.transitionDuration || '200ms',
-    transitionEasing: style.transitionEasing || 'ease-in-out',
+    // Typography defaults
+    h1Font: style.h1Font || style.fontFamily || 'Inter, sans-serif',
+    h2Font: style.h2Font || style.fontFamily || 'Inter, sans-serif',
+    h3Font: style.h3Font || style.fontFamily || 'Inter, sans-serif',
+    bodyFont: style.bodyFont || style.fontFamily || 'Inter, sans-serif',
+    h1Size: style.h1Size || 48,
+    h2Size: style.h2Size || 36,
+    h3Size: style.h3Size || 24,
+    bodySize: style.bodySize || 16,
+    h1Weight: style.h1Weight || 700,
+    h2Weight: style.h2Weight || 600,
+    h3Weight: style.h3Weight || 600,
+    bodyWeight: style.bodyWeight || 400,
+    lineHeight: style.lineHeight || 1.6,
+    letterSpacing: style.letterSpacing || 0,
+    listStyle: style.listStyle || 'disc',
+    // Layout defaults
+    borderRadius: parseInt(style.borderRadius) || 8,
+    spacing: parseInt(style.spacing) || 16,
+    cardPadding: parseInt(style.cardPadding) || 24,
+    borderWidth: parseInt(style.borderWidth) || 1,
+    // Effects
+    shadowIntensity: style.shadowIntensity || 'medium',
+    // Interactive
+    transitionSpeed: style.transitionSpeed || 200,
+    hoverScale: style.hoverScale || 1.02,
     buttonTextTransform: style.buttonTextTransform || 'none',
-    buttonFontWeight: style.buttonFontWeight || '600',
-    lineHeight: style.lineHeight || '1.6',
-    letterSpacing: style.letterSpacing || '0',
-    inputBorderColor: style.inputBorderColor || '#e2e8f0',
-    inputFocusColor: style.inputFocusColor || style.primaryColor,
-    hoverScale: style.hoverScale || '1.02',
-    cardPadding: style.cardPadding || '24px',
   });
   
   const [themeName, setThemeName] = useState(`${style.name} Custom`);
-  const [activeSection, setActiveSection] = useState('colors');
-  const [hasChanges, setHasChanges] = useState(false);
-
-  useEffect(() => {
-    setHasChanges(JSON.stringify(customStyle) !== JSON.stringify(style));
-  }, [customStyle, style]);
+  const [activeSection, setActiveSection] = useState('typography');
 
   const updateStyle = (key, value) => {
     setCustomStyle(prev => ({ ...prev, [key]: value }));
@@ -115,6 +208,19 @@ export default function ThemeCustomizer({ style, onClose, onSave }) {
     setThemeName(`${style.name} Custom`);
   };
 
+  // Generate shadow based on intensity
+  const getShadow = (intensity) => {
+    const shadows = {
+      none: 'none',
+      subtle: '0 1px 3px rgba(0,0,0,0.08)',
+      light: '0 2px 6px rgba(0,0,0,0.1)',
+      medium: '0 4px 12px rgba(0,0,0,0.12)',
+      strong: '0 8px 24px rgba(0,0,0,0.16)',
+      heavy: '0 12px 32px rgba(0,0,0,0.2)',
+    };
+    return shadows[intensity] || shadows.medium;
+  };
+
   const handleSave = () => {
     const newStyle = {
       ...customStyle,
@@ -122,9 +228,15 @@ export default function ThemeCustomizer({ style, onClose, onSave }) {
       name: themeName,
       category: 'custom',
       originalStyleId: style.id,
+      borderRadius: `${customStyle.borderRadius}px`,
+      spacing: `${customStyle.spacing}px`,
+      cardPadding: `${customStyle.cardPadding}px`,
+      borderWidth: `${customStyle.borderWidth}px`,
+      shadowStyle: getShadow(customStyle.shadowIntensity),
+      fontFamily: customStyle.bodyFont,
     };
     
-    // Save to localStorage custom styles
+    // Save to localStorage
     const customStyles = JSON.parse(localStorage.getItem('vibesync_custom_styles') || '[]');
     customStyles.push(newStyle);
     localStorage.setItem('vibesync_custom_styles', JSON.stringify(customStyles));
@@ -136,79 +248,17 @@ export default function ThemeCustomizer({ style, onClose, onSave }) {
       localStorage.setItem('vibesync_favorites', JSON.stringify(favorites));
     }
     
-    // Dispatch storage event for other components
     window.dispatchEvent(new Event('storage'));
-    
     onSave(newStyle);
     onClose();
   };
 
   const sections = [
-    { id: 'colors', label: 'Colors', icon: Palette },
     { id: 'typography', label: 'Typography', icon: Type },
+    { id: 'colors', label: 'Colors', icon: Palette },
     { id: 'layout', label: 'Layout', icon: Layout },
     { id: 'effects', label: 'Effects', icon: Sparkles },
-    { id: 'interactive', label: 'Interactive', icon: MousePointer },
   ];
-
-  // Color input component
-  const ColorInput = ({ label, colorKey }) => (
-    <div className="flex items-center justify-between py-2">
-      <label className="text-sm text-slate-600">{label}</label>
-      <div className="flex items-center gap-2">
-        <input
-          type="color"
-          value={customStyle[colorKey]}
-          onChange={(e) => updateStyle(colorKey, e.target.value)}
-          className="w-8 h-8 rounded cursor-pointer border-2 border-slate-200"
-        />
-        <input
-          type="text"
-          value={customStyle[colorKey]}
-          onChange={(e) => updateStyle(colorKey, e.target.value)}
-          className="w-20 px-2 py-1 text-xs font-mono border border-slate-200 rounded"
-        />
-      </div>
-    </div>
-  );
-
-  // Select input component
-  const SelectInput = ({ label, value, options, onChange }) => (
-    <div className="flex items-center justify-between py-2">
-      <label className="text-sm text-slate-600">{label}</label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="px-2 py-1 text-sm border border-slate-200 rounded bg-white min-w-[120px]"
-      >
-        {options.map((opt) => (
-          <option key={typeof opt === 'string' ? opt : opt.value} value={typeof opt === 'string' ? opt : opt.value}>
-            {typeof opt === 'string' ? opt.split(',')[0] : opt.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-
-  // Preset buttons component
-  const PresetButtons = ({ presets, currentValue, onChange, getStyle }) => (
-    <div className="flex flex-wrap gap-1 mt-1">
-      {presets.map((preset) => (
-        <button
-          key={preset.label}
-          onClick={() => onChange(preset.value)}
-          className={`px-2 py-1 text-xs rounded transition ${
-            currentValue === preset.value
-              ? 'bg-violet-600 text-white'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-          }`}
-          style={getStyle ? getStyle(preset) : {}}
-        >
-          {preset.label}
-        </button>
-      ))}
-    </div>
-  );
 
   return (
     <AnimatePresence>
@@ -220,10 +270,10 @@ export default function ThemeCustomizer({ style, onClose, onSave }) {
         onClick={onClose}
       >
         <motion.div
-          initial={{ scale: 0.9, y: 20 }}
+          initial={{ scale: 0.95, y: 20 }}
           animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0.9, y: 20 }}
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col"
+          exit={{ scale: 0.95, y: 20 }}
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -241,7 +291,7 @@ export default function ThemeCustomizer({ style, onClose, onSave }) {
                   className="text-lg font-bold text-slate-900 bg-transparent border-b-2 border-transparent hover:border-violet-300 focus:border-violet-500 outline-none transition-colors"
                   placeholder="Theme Name"
                 />
-                <p className="text-xs text-slate-500">Customizing: {style.name}</p>
+                <p className="text-xs text-slate-500">Based on: {style.name}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -266,13 +316,13 @@ export default function ThemeCustomizer({ style, onClose, onSave }) {
                 <button
                   key={section.id}
                   onClick={() => setActiveSection(section.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition ${
                     activeSection === section.id
                       ? 'bg-white text-violet-600 shadow-sm'
                       : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'
                   }`}
                 >
-                  <Icon size={14} />
+                  <Icon size={16} />
                   {section.label}
                 </button>
               );
@@ -282,194 +332,266 @@ export default function ThemeCustomizer({ style, onClose, onSave }) {
           {/* Content */}
           <div className="flex flex-1 overflow-hidden">
             {/* Controls Panel */}
-            <div className="w-1/2 p-4 overflow-y-auto border-r border-slate-200">
-              {activeSection === 'colors' && (
-                <div className="space-y-1">
-                  <h3 className="font-semibold text-slate-800 mb-3">Color Palette</h3>
-                  <ColorInput label="Primary" colorKey="primaryColor" />
-                  <ColorInput label="Secondary" colorKey="secondaryColor" />
-                  <ColorInput label="Accent" colorKey="accentColor" />
-                  <ColorInput label="Background" colorKey="backgroundColor" />
-                  <ColorInput label="Text" colorKey="textColor" />
-                  <div className="border-t border-slate-100 my-3" />
-                  <h4 className="text-sm font-medium text-slate-700 mb-2">Form Colors</h4>
-                  <ColorInput label="Input Border" colorKey="inputBorderColor" />
-                  <ColorInput label="Focus Ring" colorKey="inputFocusColor" />
-                </div>
-              )}
-
+            <div className="w-1/2 p-4 overflow-y-auto border-r border-slate-100">
+              
               {activeSection === 'typography' && (
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-slate-800 mb-3">Typography</h3>
-                  <SelectInput
-                    label="Primary Font"
-                    value={customStyle.fontFamily}
-                    options={FONT_OPTIONS}
-                    onChange={(v) => updateStyle('fontFamily', v)}
-                  />
-                  <div className="py-2">
-                    <label className="text-sm text-slate-600 block mb-1">Line Height</label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="2"
-                      step="0.1"
-                      value={customStyle.lineHeight}
-                      onChange={(e) => updateStyle('lineHeight', e.target.value)}
-                      className="w-full"
+                <div className="space-y-4">
+                  {/* H1 Settings */}
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                      <span className="w-6 h-6 bg-violet-600 text-white text-xs font-bold rounded flex items-center justify-center">H1</span>
+                      Heading 1
+                    </h4>
+                    <FontSelector 
+                      label="Font Family" 
+                      value={customStyle.h1Font} 
+                      onChange={(v) => updateStyle('h1Font', v)} 
                     />
-                    <div className="flex justify-between text-xs text-slate-400">
-                      <span>Tight (1.0)</span>
-                      <span className="font-medium text-violet-600">{customStyle.lineHeight}</span>
-                      <span>Loose (2.0)</span>
+                    <div className="grid grid-cols-2 gap-3">
+                      <NumberStepper 
+                        label="Size" 
+                        value={customStyle.h1Size} 
+                        onChange={(v) => updateStyle('h1Size', parseInt(v))} 
+                        min={24} max={96} step={2} unit="px" small 
+                      />
+                      <NumberStepper 
+                        label="Weight" 
+                        value={customStyle.h1Weight} 
+                        onChange={(v) => updateStyle('h1Weight', parseInt(v))} 
+                        min={300} max={900} step={100} unit="" small 
+                      />
                     </div>
                   </div>
-                  <div className="py-2">
-                    <label className="text-sm text-slate-600 block mb-1">Letter Spacing</label>
-                    <input
-                      type="range"
-                      min="-0.05"
-                      max="0.2"
-                      step="0.01"
-                      value={customStyle.letterSpacing}
-                      onChange={(e) => updateStyle('letterSpacing', e.target.value)}
-                      className="w-full"
+
+                  {/* H2 Settings */}
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                      <span className="w-6 h-6 bg-violet-500 text-white text-xs font-bold rounded flex items-center justify-center">H2</span>
+                      Heading 2
+                    </h4>
+                    <FontSelector 
+                      label="Font Family" 
+                      value={customStyle.h2Font} 
+                      onChange={(v) => updateStyle('h2Font', v)} 
                     />
-                    <div className="flex justify-between text-xs text-slate-400">
-                      <span>Tight</span>
-                      <span className="font-medium text-violet-600">{customStyle.letterSpacing}em</span>
-                      <span>Wide</span>
+                    <div className="grid grid-cols-2 gap-3">
+                      <NumberStepper 
+                        label="Size" 
+                        value={customStyle.h2Size} 
+                        onChange={(v) => updateStyle('h2Size', parseInt(v))} 
+                        min={18} max={72} step={2} unit="px" small 
+                      />
+                      <NumberStepper 
+                        label="Weight" 
+                        value={customStyle.h2Weight} 
+                        onChange={(v) => updateStyle('h2Weight', parseInt(v))} 
+                        min={300} max={900} step={100} unit="" small 
+                      />
                     </div>
                   </div>
-                </div>
-              )}
 
-              {activeSection === 'layout' && (
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-slate-800 mb-3">Layout & Spacing</h3>
-                  
-                  <div className="py-2">
-                    <label className="text-sm text-slate-600">Border Radius</label>
-                    <PresetButtons
-                      presets={RADIUS_PRESETS}
-                      currentValue={customStyle.borderRadius}
-                      onChange={(v) => updateStyle('borderRadius', v)}
-                      getStyle={(p) => ({ borderRadius: p.value })}
+                  {/* H3 Settings */}
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                      <span className="w-6 h-6 bg-violet-400 text-white text-xs font-bold rounded flex items-center justify-center">H3</span>
+                      Heading 3
+                    </h4>
+                    <FontSelector 
+                      label="Font Family" 
+                      value={customStyle.h3Font} 
+                      onChange={(v) => updateStyle('h3Font', v)} 
+                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <NumberStepper 
+                        label="Size" 
+                        value={customStyle.h3Size} 
+                        onChange={(v) => updateStyle('h3Size', parseInt(v))} 
+                        min={14} max={48} step={1} unit="px" small 
+                      />
+                      <NumberStepper 
+                        label="Weight" 
+                        value={customStyle.h3Weight} 
+                        onChange={(v) => updateStyle('h3Weight', parseInt(v))} 
+                        min={300} max={900} step={100} unit="" small 
+                      />
+                    </div>
+                  </div>
+
+                  {/* Body Text Settings */}
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
+                      <span className="w-6 h-6 bg-slate-500 text-white text-xs font-bold rounded flex items-center justify-center">P</span>
+                      Body Text
+                    </h4>
+                    <FontSelector 
+                      label="Font Family" 
+                      value={customStyle.bodyFont} 
+                      onChange={(v) => updateStyle('bodyFont', v)} 
+                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <NumberStepper 
+                        label="Size" 
+                        value={customStyle.bodySize} 
+                        onChange={(v) => updateStyle('bodySize', parseInt(v))} 
+                        min={12} max={24} step={1} unit="px" small 
+                      />
+                      <NumberStepper 
+                        label="Weight" 
+                        value={customStyle.bodyWeight} 
+                        onChange={(v) => updateStyle('bodyWeight', parseInt(v))} 
+                        min={300} max={700} step={100} unit="" small 
+                      />
+                    </div>
+                    <SliderInput 
+                      label="Line Height" 
+                      value={customStyle.lineHeight} 
+                      onChange={(v) => updateStyle('lineHeight', v)} 
+                      min={1} max={2.5} step={0.1} 
                     />
                   </div>
 
-                  <div className="py-2">
-                    <label className="text-sm text-slate-600">Base Spacing</label>
-                    <PresetButtons
-                      presets={SPACING_PRESETS}
-                      currentValue={customStyle.spacing}
-                      onChange={(v) => updateStyle('spacing', v)}
-                    />
-                  </div>
-
-                  <div className="py-2">
-                    <label className="text-sm text-slate-600">Card Padding</label>
-                    <PresetButtons
-                      presets={[
-                        { label: '12px', value: '12px' },
-                        { label: '16px', value: '16px' },
-                        { label: '20px', value: '20px' },
-                        { label: '24px', value: '24px' },
-                        { label: '32px', value: '32px' },
-                      ]}
-                      currentValue={customStyle.cardPadding}
-                      onChange={(v) => updateStyle('cardPadding', v)}
-                    />
-                  </div>
-
-                  <div className="py-2">
-                    <label className="text-sm text-slate-600">Border Width</label>
-                    <PresetButtons
-                      presets={BORDER_PRESETS}
-                      currentValue={customStyle.borderWidth}
-                      onChange={(v) => updateStyle('borderWidth', v)}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {activeSection === 'effects' && (
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-slate-800 mb-3">Visual Effects</h3>
-                  
-                  <div className="py-2">
-                    <label className="text-sm text-slate-600">Shadow Style</label>
-                    <PresetButtons
-                      presets={SHADOW_PRESETS}
-                      currentValue={customStyle.shadowStyle}
-                      onChange={(v) => updateStyle('shadowStyle', v)}
-                    />
-                  </div>
-
-                  <div className="py-2">
-                    <label className="text-sm text-slate-600 block mb-1">Gradient Direction</label>
-                    <div className="flex gap-2 flex-wrap">
-                      {['135deg', '90deg', '180deg', '45deg', '0deg', '270deg'].map((deg) => (
+                  {/* List Style */}
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <h4 className="font-semibold text-slate-800 mb-2">List Style</h4>
+                    <div className="grid grid-cols-4 gap-2">
+                      {LIST_STYLES.map((ls) => (
                         <button
-                          key={deg}
-                          onClick={() => updateStyle('gradientStyle', `linear-gradient(${deg}, ${customStyle.primaryColor}, ${customStyle.secondaryColor})`)}
-                          className="w-10 h-10 rounded-lg border-2 border-slate-200 hover:border-violet-400 transition"
-                          style={{ background: `linear-gradient(${deg}, ${customStyle.primaryColor}, ${customStyle.secondaryColor})` }}
-                          title={deg}
-                        />
+                          key={ls.value}
+                          onClick={() => updateStyle('listStyle', ls.value)}
+                          className={`px-2 py-2 text-xs rounded-lg transition ${
+                            customStyle.listStyle === ls.value
+                              ? 'bg-violet-600 text-white'
+                              : 'bg-white border border-slate-200 text-slate-600 hover:border-violet-400'
+                          }`}
+                        >
+                          {ls.label}
+                        </button>
                       ))}
                     </div>
                   </div>
                 </div>
               )}
 
-              {activeSection === 'interactive' && (
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-slate-800 mb-3">Interactive Elements</h3>
-                  
-                  <div className="py-2">
-                    <label className="text-sm text-slate-600">Animation Speed</label>
-                    <PresetButtons
-                      presets={ANIMATION_PRESETS}
-                      currentValue={customStyle.transitionDuration}
-                      onChange={(v) => {
-                        const preset = ANIMATION_PRESETS.find(p => p.duration === v);
-                        updateStyle('transitionDuration', v);
-                        if (preset) updateStyle('transitionEasing', preset.value);
-                      }}
-                    />
+              {activeSection === 'colors' && (
+                <div className="space-y-4">
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <h4 className="font-semibold text-slate-800 mb-3">Brand Colors</h4>
+                    <ColorInput label="Primary" value={customStyle.primaryColor} onChange={(v) => updateStyle('primaryColor', v)} />
+                    <ColorInput label="Secondary" value={customStyle.secondaryColor} onChange={(v) => updateStyle('secondaryColor', v)} />
+                    <ColorInput label="Accent" value={customStyle.accentColor} onChange={(v) => updateStyle('accentColor', v)} />
                   </div>
-
-                  <div className="py-2">
-                    <label className="text-sm text-slate-600">Hover Scale</label>
-                    <PresetButtons
-                      presets={[
-                        { label: 'None', value: '1' },
-                        { label: 'Subtle', value: '1.02' },
-                        { label: 'Medium', value: '1.05' },
-                        { label: 'Large', value: '1.1' },
-                      ]}
-                      currentValue={customStyle.hoverScale}
-                      onChange={(v) => updateStyle('hoverScale', v)}
-                    />
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <h4 className="font-semibold text-slate-800 mb-3">Background & Text</h4>
+                    <ColorInput label="Background" value={customStyle.backgroundColor} onChange={(v) => updateStyle('backgroundColor', v)} />
+                    <ColorInput label="Text Color" value={customStyle.textColor} onChange={(v) => updateStyle('textColor', v)} />
                   </div>
+                </div>
+              )}
 
-                  <div className="py-2">
-                    <label className="text-sm text-slate-600">Button Style</label>
-                    <div className="flex gap-2 mt-1">
-                      {BUTTON_STYLES.map((bs) => (
+              {activeSection === 'layout' && (
+                <div className="space-y-4">
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <h4 className="font-semibold text-slate-800 mb-3">Border Radius</h4>
+                    <SliderInput 
+                      label="Corner Radius" 
+                      value={customStyle.borderRadius} 
+                      onChange={(v) => updateStyle('borderRadius', v)} 
+                      min={0} max={32} step={1} unit="px"
+                    />
+                    <div className="flex justify-between mt-2">
+                      {[0, 4, 8, 12, 16, 24, 9999].map((r) => (
                         <button
-                          key={bs.label}
-                          onClick={() => {
-                            updateStyle('buttonTextTransform', bs.textTransform);
-                            updateStyle('buttonFontWeight', bs.fontWeight);
-                          }}
-                          className={`px-3 py-1.5 text-xs rounded transition ${
-                            customStyle.buttonTextTransform === bs.textTransform && customStyle.buttonFontWeight === bs.fontWeight
-                              ? 'bg-violet-600 text-white'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          key={r}
+                          onClick={() => updateStyle('borderRadius', r)}
+                          className={`w-10 h-10 border-2 transition ${
+                            customStyle.borderRadius === r ? 'border-violet-600 bg-violet-50' : 'border-slate-200 hover:border-violet-400'
                           }`}
-                          style={{ textTransform: bs.textTransform, fontWeight: bs.fontWeight }}
+                          style={{ borderRadius: r === 9999 ? '50%' : `${r}px` }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <h4 className="font-semibold text-slate-800 mb-3">Spacing</h4>
+                    <NumberStepper 
+                      label="Base Spacing" 
+                      value={customStyle.spacing} 
+                      onChange={(v) => updateStyle('spacing', parseInt(v))} 
+                      min={4} max={48} step={4} unit="px" 
+                    />
+                    <NumberStepper 
+                      label="Card Padding" 
+                      value={customStyle.cardPadding} 
+                      onChange={(v) => updateStyle('cardPadding', parseInt(v))} 
+                      min={8} max={48} step={4} unit="px" 
+                    />
+                    <NumberStepper 
+                      label="Border Width" 
+                      value={customStyle.borderWidth} 
+                      onChange={(v) => updateStyle('borderWidth', parseInt(v))} 
+                      min={0} max={4} step={1} unit="px" 
+                    />
+                  </div>
+                </div>
+              )}
+
+              {activeSection === 'effects' && (
+                <div className="space-y-4">
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <h4 className="font-semibold text-slate-800 mb-3">Shadows</h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      {['none', 'subtle', 'light', 'medium', 'strong', 'heavy'].map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => updateStyle('shadowIntensity', s)}
+                          className={`p-3 rounded-lg transition capitalize ${
+                            customStyle.shadowIntensity === s
+                              ? 'bg-violet-600 text-white'
+                              : 'bg-white text-slate-600 hover:bg-violet-50'
+                          }`}
+                          style={{ boxShadow: getShadow(s) }}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <h4 className="font-semibold text-slate-800 mb-3">Animations</h4>
+                    <SliderInput 
+                      label="Transition Speed" 
+                      value={customStyle.transitionSpeed} 
+                      onChange={(v) => updateStyle('transitionSpeed', v)} 
+                      min={0} max={500} step={50} unit="ms"
+                    />
+                    <SliderInput 
+                      label="Hover Scale" 
+                      value={customStyle.hoverScale} 
+                      onChange={(v) => updateStyle('hoverScale', v)} 
+                      min={1} max={1.15} step={0.01}
+                    />
+                  </div>
+
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <h4 className="font-semibold text-slate-800 mb-3">Button Style</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { value: 'none', label: 'Normal' },
+                        { value: 'uppercase', label: 'UPPERCASE' },
+                        { value: 'capitalize', label: 'Capitalize' },
+                        { value: 'lowercase', label: 'lowercase' },
+                      ].map((bs) => (
+                        <button
+                          key={bs.value}
+                          onClick={() => updateStyle('buttonTextTransform', bs.value)}
+                          className={`px-3 py-2 text-sm rounded-lg transition ${
+                            customStyle.buttonTextTransform === bs.value
+                              ? 'bg-violet-600 text-white'
+                              : 'bg-white border border-slate-200 text-slate-600 hover:border-violet-400'
+                          }`}
+                          style={{ textTransform: bs.value }}
                         >
                           {bs.label}
                         </button>
@@ -481,109 +603,135 @@ export default function ThemeCustomizer({ style, onClose, onSave }) {
             </div>
 
             {/* Live Preview */}
-            <div className="w-1/2 p-4 bg-slate-50 overflow-y-auto">
-              <h3 className="font-semibold text-slate-800 mb-3">Live Preview</h3>
+            <div className="w-1/2 p-4 bg-slate-100 overflow-y-auto">
+              <div className="flex items-center gap-2 mb-3">
+                <Eye size={16} className="text-violet-600" />
+                <h3 className="font-semibold text-slate-800">Live Preview</h3>
+              </div>
+              
               <div
-                className="rounded-xl p-4 min-h-[300px]"
-                style={{ backgroundColor: customStyle.backgroundColor }}
+                className="rounded-xl p-6 min-h-[400px]"
+                style={{ 
+                  backgroundColor: customStyle.backgroundColor,
+                  transition: `all ${customStyle.transitionSpeed}ms ease`
+                }}
               >
-                {/* Preview Card */}
+                {/* Typography Preview */}
+                <h1 style={{
+                  fontFamily: customStyle.h1Font,
+                  fontSize: `${customStyle.h1Size}px`,
+                  fontWeight: customStyle.h1Weight,
+                  color: customStyle.primaryColor,
+                  lineHeight: customStyle.lineHeight,
+                  marginBottom: `${customStyle.spacing}px`,
+                }}>
+                  Heading One
+                </h1>
+                
+                <h2 style={{
+                  fontFamily: customStyle.h2Font,
+                  fontSize: `${customStyle.h2Size}px`,
+                  fontWeight: customStyle.h2Weight,
+                  color: customStyle.secondaryColor,
+                  lineHeight: customStyle.lineHeight,
+                  marginBottom: `${customStyle.spacing}px`,
+                }}>
+                  Heading Two
+                </h2>
+                
+                <h3 style={{
+                  fontFamily: customStyle.h3Font,
+                  fontSize: `${customStyle.h3Size}px`,
+                  fontWeight: customStyle.h3Weight,
+                  color: customStyle.textColor,
+                  lineHeight: customStyle.lineHeight,
+                  marginBottom: `${customStyle.spacing}px`,
+                }}>
+                  Heading Three
+                </h3>
+                
+                <p style={{
+                  fontFamily: customStyle.bodyFont,
+                  fontSize: `${customStyle.bodySize}px`,
+                  fontWeight: customStyle.bodyWeight,
+                  color: customStyle.textColor,
+                  lineHeight: customStyle.lineHeight,
+                  marginBottom: `${customStyle.spacing}px`,
+                }}>
+                  This is body text that shows how paragraphs will look with your chosen typography settings. Good readability is essential for user experience.
+                </p>
+
+                {/* List Preview */}
+                <ul style={{
+                  listStyleType: customStyle.listStyle,
+                  fontFamily: customStyle.bodyFont,
+                  fontSize: `${customStyle.bodySize}px`,
+                  color: customStyle.textColor,
+                  paddingLeft: '20px',
+                  marginBottom: `${customStyle.spacing}px`,
+                }}>
+                  <li>First list item</li>
+                  <li>Second list item</li>
+                  <li>Third list item</li>
+                </ul>
+
+                {/* Card Preview */}
                 <div
-                  className="mb-4 transition-all"
                   style={{
                     backgroundColor: '#ffffff',
-                    borderRadius: customStyle.borderRadius,
-                    boxShadow: customStyle.shadowStyle,
-                    padding: customStyle.cardPadding,
-                    border: `${customStyle.borderWidth} solid ${customStyle.inputBorderColor}`,
-                    transition: `all ${customStyle.transitionDuration} ${customStyle.transitionEasing}`,
+                    borderRadius: `${customStyle.borderRadius}px`,
+                    padding: `${customStyle.cardPadding}px`,
+                    border: `${customStyle.borderWidth}px solid ${customStyle.primaryColor}20`,
+                    boxShadow: getShadow(customStyle.shadowIntensity),
+                    transition: `all ${customStyle.transitionSpeed}ms ease`,
                   }}
+                  className="hover:scale-[1.02]"
                 >
-                  <h4
-                    style={{
-                      color: customStyle.primaryColor,
-                      fontFamily: customStyle.fontFamily,
-                      lineHeight: customStyle.lineHeight,
-                      letterSpacing: `${customStyle.letterSpacing}em`,
-                      fontSize: '18px',
-                      fontWeight: '600',
-                      marginBottom: customStyle.spacing,
-                    }}
-                  >
+                  <h4 style={{
+                    fontFamily: customStyle.h3Font,
+                    fontSize: `${customStyle.h3Size * 0.8}px`,
+                    fontWeight: customStyle.h3Weight,
+                    color: customStyle.primaryColor,
+                    marginBottom: `${customStyle.spacing / 2}px`,
+                  }}>
                     Card Title
                   </h4>
-                  <p
-                    style={{
-                      color: customStyle.textColor,
-                      fontFamily: customStyle.fontFamily,
-                      lineHeight: customStyle.lineHeight,
-                      letterSpacing: `${customStyle.letterSpacing}em`,
-                      fontSize: '14px',
-                      marginBottom: customStyle.spacing,
-                    }}
-                  >
-                    This is how your text will look with the current typography settings.
+                  <p style={{
+                    fontFamily: customStyle.bodyFont,
+                    fontSize: `${customStyle.bodySize}px`,
+                    color: customStyle.textColor,
+                    marginBottom: `${customStyle.spacing}px`,
+                  }}>
+                    Card content with your styling applied.
                   </p>
                   <div className="flex gap-2">
-                    <button
-                      className="px-4 py-2 text-white text-sm transition-transform hover:scale-105"
-                      style={{
-                        background: customStyle.gradientStyle || `linear-gradient(135deg, ${customStyle.primaryColor}, ${customStyle.secondaryColor})`,
-                        borderRadius: customStyle.borderRadius,
-                        textTransform: customStyle.buttonTextTransform,
-                        fontWeight: customStyle.buttonFontWeight,
-                        fontFamily: customStyle.fontFamily,
-                        transition: `all ${customStyle.transitionDuration} ${customStyle.transitionEasing}`,
-                      }}
-                    >
+                    <button style={{
+                      background: `linear-gradient(135deg, ${customStyle.primaryColor}, ${customStyle.secondaryColor})`,
+                      color: '#fff',
+                      padding: '8px 16px',
+                      borderRadius: `${customStyle.borderRadius}px`,
+                      fontFamily: customStyle.bodyFont,
+                      fontSize: `${customStyle.bodySize}px`,
+                      fontWeight: 600,
+                      textTransform: customStyle.buttonTextTransform,
+                      transition: `all ${customStyle.transitionSpeed}ms ease`,
+                    }}>
                       Primary
                     </button>
-                    <button
-                      className="px-4 py-2 text-sm"
-                      style={{
-                        borderRadius: customStyle.borderRadius,
-                        border: `2px solid ${customStyle.primaryColor}`,
-                        color: customStyle.primaryColor,
-                        textTransform: customStyle.buttonTextTransform,
-                        fontWeight: customStyle.buttonFontWeight,
-                        fontFamily: customStyle.fontFamily,
-                        backgroundColor: 'transparent',
-                      }}
-                    >
+                    <button style={{
+                      background: 'transparent',
+                      color: customStyle.primaryColor,
+                      padding: '8px 16px',
+                      borderRadius: `${customStyle.borderRadius}px`,
+                      border: `2px solid ${customStyle.primaryColor}`,
+                      fontFamily: customStyle.bodyFont,
+                      fontSize: `${customStyle.bodySize}px`,
+                      fontWeight: 600,
+                      textTransform: customStyle.buttonTextTransform,
+                    }}>
                       Secondary
                     </button>
                   </div>
-                </div>
-
-                {/* Preview Input */}
-                <div className="mb-4">
-                  <input
-                    type="text"
-                    placeholder="Input field preview"
-                    className="w-full px-3 py-2 outline-none transition-all"
-                    style={{
-                      borderRadius: customStyle.borderRadius,
-                      border: `${customStyle.borderWidth} solid ${customStyle.inputBorderColor}`,
-                      fontFamily: customStyle.fontFamily,
-                      fontSize: '14px',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = customStyle.inputFocusColor}
-                    onBlur={(e) => e.target.style.borderColor = customStyle.inputBorderColor}
-                  />
-                </div>
-
-                {/* Color Swatches */}
-                <div className="flex gap-2">
-                  {['primaryColor', 'secondaryColor', 'accentColor'].map((key) => (
-                    <div
-                      key={key}
-                      className="w-8 h-8"
-                      style={{
-                        backgroundColor: customStyle[key],
-                        borderRadius: customStyle.borderRadius,
-                      }}
-                    />
-                  ))}
                 </div>
               </div>
             </div>
@@ -592,7 +740,7 @@ export default function ThemeCustomizer({ style, onClose, onSave }) {
           {/* Footer */}
           <div className="p-4 border-t border-slate-200 bg-white flex items-center justify-between">
             <p className="text-sm text-slate-500">
-              {hasChanges ? '• Unsaved changes' : 'No changes'}
+              Custom theme will be automatically added to your favorites
             </p>
             <div className="flex gap-2">
               <button
@@ -604,10 +752,10 @@ export default function ThemeCustomizer({ style, onClose, onSave }) {
               <button
                 onClick={handleSave}
                 disabled={!themeName.trim()}
-                className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-lg hover:shadow-lg transition disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-2 text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-lg hover:shadow-lg transition disabled:opacity-50"
               >
                 <Save size={16} />
-                Save & Add to Favorites
+                Save Theme
               </button>
             </div>
           </div>
