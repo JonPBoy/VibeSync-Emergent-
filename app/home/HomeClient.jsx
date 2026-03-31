@@ -23,6 +23,7 @@ const getStyleTags = (style) => {
   if (cat === 'gradient' || cat === 'glassmorphism') tags.moods.push('Modern', 'Cool');
   if (cat === 'corporate') tags.moods.push('Professional', 'Subtle');
   if (cat === 'neumorphism') tags.moods.push('Calm', 'Modern');
+  if (cat === 'dark') tags.moods.push('Modern', 'Bold', 'Cool', 'Elegant');
   
   // Industry tags based on category
   if (cat === 'corporate') tags.industries.push('Finance', 'Real Estate', 'Tech');
@@ -31,6 +32,7 @@ const getStyleTags = (style) => {
   if (cat === 'minimal') tags.industries.push('Tech', 'Healthcare', 'E-commerce');
   if (cat === 'bold' || cat === 'neon') tags.industries.push('Sports', 'Entertainment', 'Tech');
   if (cat === 'gradient') tags.industries.push('Tech', 'Art', 'Fashion');
+  if (cat === 'dark') tags.industries.push('Tech', 'Entertainment', 'Art', 'Fashion');
   
   return tags;
 };
