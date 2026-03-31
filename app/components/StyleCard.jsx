@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Heart, Copy, Eye } from 'lucide-react';
+import { Heart, Copy, Eye, Wand2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { generateAIInstructions } from '@/lib/mockStyles';
 
 // Get contrasting color for text
 const getContrastColor = (hexColor) => {
@@ -19,6 +20,7 @@ const getContrastColor = (hexColor) => {
 export default function StyleCard({ style, onPreview }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedAI, setCopiedAI] = useState(false);
 
   useEffect(() => {
     const favorites = JSON.parse(localStorage.getItem('vibesync_favorites') || '[]');
@@ -69,6 +71,14 @@ export default function StyleCard({ style, onPreview }) {
     navigator.clipboard.writeText(css);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyAIInstructions = (e) => {
+    e.stopPropagation();
+    const instructions = generateAIInstructions(style, true);
+    navigator.clipboard.writeText(instructions);
+    setCopiedAI(true);
+    setTimeout(() => setCopiedAI(false), 2000);
   };
 
   return (
@@ -156,23 +166,35 @@ export default function StyleCard({ style, onPreview }) {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 mb-2">
+          <button
+            onClick={copyAIInstructions}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg transition-all ${
+              copiedAI 
+                ? 'bg-emerald-100 text-emerald-700' 
+                : 'text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:shadow-md'
+            }`}
+            title="Copy AI instructions for Bolt, Lovable, Cursor"
+          >
+            <Wand2 size={14} />
+            {copiedAI ? 'Copied!' : 'Copy AI'}
+          </button>
           <button
             onClick={copyCSS}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-all ${
               copied 
                 ? 'bg-green-100 text-green-700' 
                 : 'text-slate-700 bg-slate-100 hover:bg-slate-200'
             }`}
           >
-            <Copy size={16} />
-            {copied ? 'Copied!' : 'Copy CSS'}
+            <Copy size={14} />
+            {copied ? 'Copied!' : 'CSS'}
           </button>
           <button
             onClick={() => onPreview(style)}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors"
           >
-            <Eye size={16} />
+            <Eye size={14} />
             Preview
           </button>
         </div>

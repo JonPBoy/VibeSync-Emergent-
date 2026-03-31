@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Type, Palette, Code, ChevronDown, Share2, Copy, Check, Sun, Moon, Sparkles, FolderPlus } from 'lucide-react';
+import { X, Download, Type, Palette, Code, ChevronDown, Share2, Copy, Check, Sun, Moon, Sparkles, FolderPlus, Wand2, Zap } from 'lucide-react';
 import { downloadWPTheme } from '@/lib/wpThemeGenerator';
 import { generatePalette } from '@/lib/colorUtils';
 import { generateTailwindConfig, generateSCSS, generateReactComponent, generateVueComponent, generateFigmaCSS, generateJSON, generateShareURL } from '@/lib/exportUtils';
 import { addToHistory, getCollections, addToCollection, createCollection } from '@/lib/styleHistory';
+import { generateAIInstructions } from '@/lib/mockStyles';
 
 // Available fonts organized by category
 const FONT_OPTIONS = {
@@ -228,13 +229,23 @@ export default function StylePreview({ style, onClose }) {
   const [showPalette, setShowPalette] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedAI, setCopiedAI] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
   const [showCollections, setShowCollections] = useState(false);
   const [collections, setCollections] = useState([]);
   const [newCollectionName, setNewCollectionName] = useState('');
+  const [showAIInstructions, setShowAIInstructions] = useState(false);
 
   // Color palette
   const palette = generatePalette(style.primaryColor);
+
+  // Copy AI instructions handler
+  const handleCopyAIInstructions = () => {
+    const instructions = generateAIInstructions(style, true);
+    navigator.clipboard.writeText(instructions);
+    setCopiedAI(true);
+    setTimeout(() => setCopiedAI(false), 2000);
+  };
 
   // Update selected fonts when style changes
   useEffect(() => {
@@ -1088,6 +1099,30 @@ body {
 
           {/* Footer Actions */}
           <div className="p-4 border-t border-slate-200 bg-slate-50 space-y-3">
+            {/* PROMINENT: Copy AI Instructions Button */}
+            <button
+              onClick={handleCopyAIInstructions}
+              className="w-full flex items-center justify-center gap-3 px-6 py-4 text-white font-bold bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-xl hover:shadow-xl hover:scale-[1.02] transition-all group"
+            >
+              <Wand2 size={22} className="group-hover:rotate-12 transition-transform" />
+              {copiedAI ? 'Copied to Clipboard! ✓' : 'Copy AI Instructions'}
+              <span className="text-xs opacity-80 font-normal">for Bolt, Lovable, Cursor</span>
+            </button>
+
+            {/* Show AI Instructions Preview */}
+            <button 
+              onClick={() => setShowAIInstructions(!showAIInstructions)}
+              className="w-full text-center text-sm text-slate-500 hover:text-violet-600 transition"
+            >
+              {showAIInstructions ? 'Hide' : 'Preview'} AI Instructions
+            </button>
+
+            {showAIInstructions && (
+              <div className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs font-mono max-h-48 overflow-y-auto whitespace-pre-wrap">
+                {generateAIInstructions(style, true)}
+              </div>
+            )}
+
             {/* Quick Actions Row */}
             <div className="flex gap-2">
               <button onClick={() => setDarkMode(!darkMode)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 rounded-lg hover:bg-slate-300 transition text-sm">
