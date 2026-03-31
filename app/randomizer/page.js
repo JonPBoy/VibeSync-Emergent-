@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shuffle, Lock, Unlock, Download, Heart, Palette, Type, Square, Sparkles, ChevronDown, Check, Wand2, Dices } from 'lucide-react';
+import { Shuffle, Lock, Unlock, Download, Heart, Palette, Type, Square, Sparkles, ChevronDown, Check, Wand2, Dices, Sun, Moon } from 'lucide-react';
 import { MOCK_STYLES, generateRandomTheme } from '@/lib/mockStyles';
 import { downloadWPTheme } from '@/lib/wpThemeGenerator';
 import Navbar from '../components/Navbar';
@@ -235,6 +235,7 @@ export default function RandomizerPage() {
   const [activePanel, setActivePanel] = useState('colors');
   const [isRollingDice, setIsRollingDice] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -407,6 +408,32 @@ export default function RandomizerPage() {
                   <LockPill lockKey="typography" icon={Type} label="Font" />
                   <LockPill lockKey="radius" icon={Square} label="Radius" />
                   <LockPill lockKey="shadow" icon={Sparkles} label="Shadow" />
+                  
+                  {/* Day/Night Toggle */}
+                  <div className="flex items-center bg-white/80 backdrop-blur-sm rounded-full p-0.5 shadow-sm">
+                    <button
+                      onClick={() => setIsDarkMode(false)}
+                      className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        !isDarkMode
+                          ? 'bg-amber-400 text-white shadow-md'
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      <Sun size={12} />
+                      Day
+                    </button>
+                    <button
+                      onClick={() => setIsDarkMode(true)}
+                      className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        isDarkMode
+                          ? 'bg-indigo-600 text-white shadow-md'
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      <Moon size={12} />
+                      Night
+                    </button>
+                  </div>
                 </div>
 
                 {/* Action Buttons - Floating */}
@@ -460,7 +487,7 @@ export default function RandomizerPage() {
                 </div>
 
                 {/* Preview Content */}
-                <div className="px-8 py-16 md:px-16 md:py-20">
+                <div className="px-8 py-16 md:px-16 md:py-20" style={{ backgroundColor: isDarkMode ? 'rgba(0,0,0,0.3)' : 'transparent' }}>
                   <div className="max-w-3xl mx-auto text-center">
                     <h1 
                       className="text-4xl md:text-6xl font-bold mb-4" 
@@ -505,7 +532,7 @@ export default function RandomizerPage() {
                 {/* Card Preview Strip */}
                 <div 
                   className="px-6 py-6"
-                  style={{ backgroundColor: currentStyle.backgroundColor }}
+                  style={{ backgroundColor: isDarkMode ? '#1a1a2e' : currentStyle.backgroundColor }}
                 >
                   <div className="flex gap-4 overflow-x-auto pb-2">
                     {/* Mini Cards */}
@@ -516,8 +543,9 @@ export default function RandomizerPage() {
                     ].map((card, i) => (
                       <div
                         key={i}
-                        className="flex-shrink-0 w-48 p-4 bg-white transition-transform hover:scale-105"
+                        className="flex-shrink-0 w-48 p-4 transition-transform hover:scale-105"
                         style={{
+                          backgroundColor: isDarkMode ? '#252540' : 'white',
                           borderRadius: currentStyle.borderRadius,
                           boxShadow: currentStyle.shadowStyle,
                         }}
@@ -530,7 +558,7 @@ export default function RandomizerPage() {
                         </h4>
                         <p 
                           className="text-sm"
-                          style={{ color: currentStyle.textColor, fontFamily: currentStyle.fontFamily }}
+                          style={{ color: isDarkMode ? 'rgba(255,255,255,0.7)' : currentStyle.textColor, fontFamily: currentStyle.fontFamily }}
                         >
                           {card.desc}
                         </p>
