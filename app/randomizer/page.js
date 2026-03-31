@@ -218,10 +218,14 @@ export default function RandomizerPage() {
   const [showFontDropdown, setShowFontDropdown] = useState(false);
   const [activePanel, setActivePanel] = useState('colors');
   const [isRollingDice, setIsRollingDice] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     setStyles(MOCK_STYLES);
-    handleGenerateNewTheme();
+    // Generate initial theme only after mount to avoid hydration mismatch
+    const initialTheme = generateRandomTheme();
+    setCurrentStyle(initialTheme);
   }, []);
 
   // Dice roll handler with animation
@@ -348,8 +352,23 @@ export default function RandomizerPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-100 via-violet-50 to-fuchsia-50">
         <div className="container mx-auto px-4 py-6">
           
+          {/* Loading State - Show placeholder until client hydration completes */}
+          {!isMounted || !currentStyle ? (
+            <div className="flex items-center justify-center min-h-[60vh]">
+              <div className="text-center">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="w-16 h-16 mx-auto mb-4"
+                >
+                  <Dices size={64} className="text-violet-600" />
+                </motion.div>
+                <p className="text-slate-500 font-medium">Preparing your style studio...</p>
+              </div>
+            </div>
+          ) : (
+          <>
           {/* Preview Section - TOP */}
-          {currentStyle && (
             <motion.div
               key={currentStyle.id}
               initial={{ opacity: 0, y: -10 }}
@@ -519,7 +538,6 @@ export default function RandomizerPage() {
                 </div>
               </div>
             </motion.div>
-          )}
 
           {/* Controls Section - Compact Horizontal Layout */}
           <div className="bg-white rounded-2xl shadow-lg p-4">
@@ -712,6 +730,8 @@ export default function RandomizerPage() {
               </div>
             )}
           </div>
+          </>
+          )}
         </div>
       </div>
     </>
