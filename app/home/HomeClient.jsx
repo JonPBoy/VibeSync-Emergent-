@@ -2,11 +2,38 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Sparkles } from 'lucide-react';
+import { Search, Sparkles, Filter, X, Zap, Briefcase, Palette } from 'lucide-react';
 import { supabase, isSupabaseConfigured, isDatabaseReady, setDatabaseReady } from '@/lib/supabase';
 import { MOCK_STYLES, CATEGORIES } from '@/lib/mockStyles';
+import { MOOD_TAGS, INDUSTRY_TAGS } from '@/lib/colorUtils';
 import StyleCard from '../components/StyleCard';
 import StylePreview from '../components/StylePreview';
+
+// Map styles to mood/industry tags based on category and colors
+const getStyleTags = (style) => {
+  const tags = { moods: [], industries: [] };
+  const cat = style.category?.toLowerCase() || '';
+  
+  // Mood tags based on category
+  if (cat === 'bold' || cat === 'neon') tags.moods.push('Energetic', 'Bold');
+  if (cat === 'minimal') tags.moods.push('Calm', 'Subtle', 'Modern');
+  if (cat === 'luxury') tags.moods.push('Elegant', 'Professional');
+  if (cat === 'playful') tags.moods.push('Playful', 'Warm');
+  if (cat === 'retro') tags.moods.push('Vintage', 'Warm');
+  if (cat === 'gradient' || cat === 'glassmorphism') tags.moods.push('Modern', 'Cool');
+  if (cat === 'corporate') tags.moods.push('Professional', 'Subtle');
+  if (cat === 'neumorphism') tags.moods.push('Calm', 'Modern');
+  
+  // Industry tags based on category
+  if (cat === 'corporate') tags.industries.push('Finance', 'Real Estate', 'Tech');
+  if (cat === 'luxury') tags.industries.push('Fashion', 'Art', 'Entertainment');
+  if (cat === 'playful') tags.industries.push('Education', 'Food', 'Entertainment');
+  if (cat === 'minimal') tags.industries.push('Tech', 'Healthcare', 'E-commerce');
+  if (cat === 'bold' || cat === 'neon') tags.industries.push('Sports', 'Entertainment', 'Tech');
+  if (cat === 'gradient') tags.industries.push('Tech', 'Art', 'Fashion');
+  
+  return tags;
+};
 
 export default function HomeClient() {
   const [styles, setStyles] = useState([]);
@@ -15,6 +42,9 @@ export default function HomeClient() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [previewStyle, setPreviewStyle] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedMoods, setSelectedMoods] = useState([]);
+  const [selectedIndustries, setSelectedIndustries] = useState([]);
 
   const categories = CATEGORIES;
 
@@ -24,7 +54,7 @@ export default function HomeClient() {
 
   useEffect(() => {
     filterStyles();
-  }, [searchTerm, selectedCategory, styles]);
+  }, [searchTerm, selectedCategory, styles, selectedMoods, selectedIndustries]);
 
   const fetchStyles = async () => {
     let dbStyles = [];
@@ -38,20 +68,14 @@ export default function HomeClient() {
           .order('created_at', { ascending: false });
         
         if (!error && data) {
-          // Supabase fetch succeeded, mark database as ready
           setDatabaseReady(true);
           dbStyles = data;
         }
-        // If error (like table not found PGRST205), we silently ignore it
-        // No console.error - this is intentional to keep console clean
       } catch {
-        // Silently catch any network or parsing errors
-        // Fall back to mock data
+        // Silently catch errors
       }
     }
     
-    // Merge database styles with mock styles (DB styles first, then mock)
-    // Avoid duplicates by checking IDs
     const dbIds = new Set(dbStyles.map(s => s.id));
     const uniqueMockStyles = MOCK_STYLES.filter(s => !dbIds.has(s.id));
     const combinedStyles = [...dbStyles, ...uniqueMockStyles];
@@ -73,8 +97,41 @@ export default function HomeClient() {
       );
     }
 
+    // Filter by mood tags
+    if (selectedMoods.length > 0) {
+      filtered = filtered.filter((style) => {
+        const tags = getStyleTags(style);
+        return selectedMoods.some(mood => tags.moods.includes(mood));
+      });
+    }
+
+    // Filter by industry tags
+    if (selectedIndustries.length > 0) {
+      filtered = filtered.filter((style) => {
+        const tags = getStyleTags(style);
+        return selectedIndustries.some(ind => tags.industries.includes(ind));
+      });
+    }
+
     setFilteredStyles(filtered);
   };
+
+  const toggleMood = (mood) => {
+    setSelectedMoods(prev => prev.includes(mood) ? prev.filter(m => m !== mood) : [...prev, mood]);
+  };
+
+  const toggleIndustry = (ind) => {
+    setSelectedIndustries(prev => prev.includes(ind) ? prev.filter(i => i !== ind) : [...prev, ind]);
+  };
+
+  const clearAllFilters = () => {
+    setSelectedMoods([]);
+    setSelectedIndustries([]);
+    setSelectedCategory('all');
+    setSearchTerm('');
+  };
+
+  const activeFilterCount = selectedMoods.length + selectedIndustries.length + (selectedCategory !== 'all' ? 1 : 0);
 
   if (loading) {
     return (
@@ -121,8 +178,17 @@ export default function HomeClient() {
           />
         </div>
 
-        {/* Category Filter */}
-        <div className="flex flex-wrap gap-2 justify-center">
+        {/* Filter Toggle & Category */}
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all ${
+              showFilters || activeFilterCount > 0 ? 'bg-violet-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            <Filter size={18} />
+            Advanced {activeFilterCount > 0 && `(${activeFilterCount})`}
+          </button>
           {categories.map((category) => (
             <button
               key={category}
@@ -137,6 +203,73 @@ export default function HomeClient() {
             </button>
           ))}
         </div>
+
+        {/* Advanced Filters Panel */}
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 max-w-4xl mx-auto overflow-hidden"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-lg">Advanced Filters</h3>
+                {activeFilterCount > 0 && (
+                  <button onClick={clearAllFilters} className="text-sm text-violet-600 hover:underline flex items-center gap-1">
+                    <X size={14} /> Clear all
+                  </button>
+                )}
+              </div>
+
+              {/* Mood Tags */}
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap size={16} className="text-amber-500" />
+                  <span className="font-medium text-sm">Mood / Vibe</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {MOOD_TAGS.map(mood => (
+                    <button
+                      key={mood}
+                      onClick={() => toggleMood(mood)}
+                      className={`px-3 py-1.5 rounded-full text-sm transition ${
+                        selectedMoods.includes(mood)
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                      }`}
+                    >
+                      {mood}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Industry Tags */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Briefcase size={16} className="text-blue-500" />
+                  <span className="font-medium text-sm">Industry</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {INDUSTRY_TAGS.map(ind => (
+                    <button
+                      key={ind}
+                      onClick={() => toggleIndustry(ind)}
+                      className={`px-3 py-1.5 rounded-full text-sm transition ${
+                        selectedIndustries.includes(ind)
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                      }`}
+                    >
+                      {ind}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Results Count */}
@@ -144,6 +277,7 @@ export default function HomeClient() {
         <p className="text-slate-600">
           Showing <span className="font-bold text-slate-900">{filteredStyles.length}</span> style
           {filteredStyles.length !== 1 ? 's' : ''}
+          {activeFilterCount > 0 && <span className="text-violet-600"> (filtered)</span>}
         </p>
       </div>
 

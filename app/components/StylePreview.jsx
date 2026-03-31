@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Type, Palette, Code, ChevronDown } from 'lucide-react';
+import { X, Download, Type, Palette, Code, ChevronDown, Share2, Copy, Check, Sun, Moon, Sparkles, FolderPlus } from 'lucide-react';
 import { downloadWPTheme } from '@/lib/wpThemeGenerator';
+import { generatePalette } from '@/lib/colorUtils';
+import { generateTailwindConfig, generateSCSS, generateReactComponent, generateVueComponent, generateFigmaCSS, generateJSON, generateShareURL } from '@/lib/exportUtils';
+import { addToHistory, getCollections, addToCollection, createCollection } from '@/lib/styleHistory';
 
 // Available fonts organized by category
 const FONT_OPTIONS = {
@@ -220,6 +223,19 @@ export default function StylePreview({ style, onClose }) {
   const [showParagraphDropdown, setShowParagraphDropdown] = useState(false);
   const [showListStyleDropdown, setShowListStyleDropdown] = useState(false);
 
+  // New features state
+  const [darkMode, setDarkMode] = useState(false);
+  const [showPalette, setShowPalette] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+  const [showCollections, setShowCollections] = useState(false);
+  const [collections, setCollections] = useState([]);
+  const [newCollectionName, setNewCollectionName] = useState('');
+
+  // Color palette
+  const palette = generatePalette(style.primaryColor);
+
   // Update selected fonts when style changes
   useEffect(() => {
     setSelectedFont(style.fontFamily);
@@ -227,7 +243,14 @@ export default function StylePreview({ style, onClose }) {
     setH2Font(style.fontFamily);
     setH3Font(style.fontFamily);
     setParagraphFont(style.fontFamily);
-  }, [style.fontFamily]);
+    addToHistory(style);
+    setCollections(getCollections());
+  }, [style]);
+
+  // Generate share URL
+  useEffect(() => {
+    setShareUrl(generateShareURL(style));
+  }, [style]);
 
   if (!style) return null;
 
@@ -945,29 +968,114 @@ body {
               </div>
             ) : (
               <div>
+                {/* Export Format Tabs */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {['CSS', 'Tailwind', 'SCSS', 'React', 'Vue', 'Figma', 'JSON'].map(format => (
+                    <button
+                      key={format}
+                      onClick={() => setShowExportMenu(format)}
+                      className={`px-3 py-1.5 text-sm rounded-lg transition ${showExportMenu === format ? 'bg-violet-600 text-white' : 'bg-slate-100 hover:bg-slate-200'}`}
+                    >
+                      {format}
+                    </button>
+                  ))}
+                </div>
+
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-sm text-slate-600">
-                    Copy this CSS to use in your project:
+                    {showExportMenu || 'CSS'} code for your project:
                   </p>
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(cssVariables);
-                      alert('CSS copied to clipboard!');
+                      const code = showExportMenu === 'Tailwind' ? generateTailwindConfig(style) :
+                        showExportMenu === 'SCSS' ? generateSCSS(style) :
+                        showExportMenu === 'React' ? generateReactComponent(style) :
+                        showExportMenu === 'Vue' ? generateVueComponent(style) :
+                        showExportMenu === 'Figma' ? generateFigmaCSS(style) :
+                        showExportMenu === 'JSON' ? generateJSON(style) : cssVariables;
+                      navigator.clipboard.writeText(code);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
                     }}
-                    className="px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors"
                   >
-                    Copy All
+                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                    {copied ? 'Copied!' : 'Copy All'}
                   </button>
                 </div>
-                <pre className="bg-slate-900 text-slate-100 p-6 rounded-xl overflow-x-auto text-sm font-mono">
-                  {cssVariables}
+                <pre className="bg-slate-900 text-slate-100 p-6 rounded-xl overflow-x-auto text-sm font-mono max-h-80">
+                  {showExportMenu === 'Tailwind' ? generateTailwindConfig(style) :
+                    showExportMenu === 'SCSS' ? generateSCSS(style) :
+                    showExportMenu === 'React' ? generateReactComponent(style) :
+                    showExportMenu === 'Vue' ? generateVueComponent(style) :
+                    showExportMenu === 'Figma' ? generateFigmaCSS(style) :
+                    showExportMenu === 'JSON' ? generateJSON(style) : cssVariables}
                 </pre>
+
+                {/* Color Palette Generator */}
+                <div className="mt-6 p-4 bg-gradient-to-r from-violet-50 to-fuchsia-50 rounded-xl">
+                  <button onClick={() => setShowPalette(!showPalette)} className="flex items-center gap-2 text-violet-700 font-semibold mb-3">
+                    <Sparkles size={18} />
+                    AI Color Palette
+                    <ChevronDown size={16} className={`transition-transform ${showPalette ? 'rotate-180' : ''}`} />
+                  </button>
+                  {showPalette && (
+                    <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
+                      {Object.entries(palette).map(([name, color]) => (
+                        <div key={name} className="text-center">
+                          <div className="w-full h-12 rounded-lg border mb-1 cursor-pointer hover:scale-105 transition" style={{ backgroundColor: color }} onClick={() => navigator.clipboard.writeText(color)} title={`Click to copy ${color}`} />
+                          <p className="text-xs text-slate-600 capitalize">{name.replace(/([A-Z])/g, ' $1')}</p>
+                          <p className="text-xs text-slate-400">{color}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
 
           {/* Footer Actions */}
-          <div className="p-6 border-t border-slate-200 bg-slate-50">
+          <div className="p-4 border-t border-slate-200 bg-slate-50 space-y-3">
+            {/* Quick Actions Row */}
+            <div className="flex gap-2">
+              <button onClick={() => setDarkMode(!darkMode)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 rounded-lg hover:bg-slate-300 transition text-sm">
+                {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+                {darkMode ? 'Light' : 'Dark'} Preview
+              </button>
+              <button onClick={() => { navigator.clipboard.writeText(shareUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 rounded-lg hover:bg-slate-300 transition text-sm">
+                <Share2 size={16} />
+                {copied ? 'Link Copied!' : 'Share Style'}
+              </button>
+              <button onClick={() => setShowCollections(!showCollections)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 rounded-lg hover:bg-slate-300 transition text-sm">
+                <FolderPlus size={16} />
+                Add to Collection
+              </button>
+            </div>
+
+            {/* Collections Dropdown */}
+            {showCollections && (
+              <div className="p-3 bg-white rounded-lg border">
+                <p className="text-sm font-medium mb-2">Add to Collection</p>
+                <div className="space-y-1 max-h-32 overflow-y-auto mb-2">
+                  {collections.length === 0 ? (
+                    <p className="text-xs text-slate-400">No collections yet</p>
+                  ) : (
+                    collections.map(col => (
+                      <button key={col.id} onClick={() => { addToCollection(col.id, style); setShowCollections(false); }} className="w-full text-left px-3 py-2 text-sm hover:bg-violet-50 rounded-lg">
+                        {col.name} ({col.styles.length})
+                      </button>
+                    ))
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <input type="text" value={newCollectionName} onChange={e => setNewCollectionName(e.target.value)} placeholder="New collection..." className="flex-1 px-2 py-1 text-sm border rounded" />
+                  <button onClick={() => { if (newCollectionName.trim()) { const col = createCollection(newCollectionName); addToCollection(col.id, style); setNewCollectionName(''); setCollections(getCollections()); } }} className="px-3 py-1 text-sm bg-violet-600 text-white rounded">Add</button>
+                </div>
+              </div>
+            )}
+
+            {/* Export Button */}
             <button
               onClick={handleExportWPTheme}
               disabled={downloading}
@@ -976,9 +1084,6 @@ body {
               <Download size={20} />
               {downloading ? 'Generating...' : 'Export as WordPress Theme'}
             </button>
-            <p className="text-xs text-slate-500 text-center mt-2">
-              Downloads a ready-to-use WordPress theme .zip file with your selected font
-            </p>
           </div>
         </motion.div>
       </motion.div>
