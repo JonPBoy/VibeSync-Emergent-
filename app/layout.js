@@ -1,4 +1,6 @@
 import './globals.css';
+import Link from 'next/link';
+import VibeSyncLogo from './components/VibeSyncLogo';
 
 export const metadata = {
   title: 'VibeSync - Visual Inspiration Library',
@@ -40,13 +42,14 @@ export default function RootLayout({ children }) {
       <body>
         <div className="min-h-screen flex flex-col">
           <header className="sticky top-0 z-50 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg">
-            <div className="container mx-auto px-4 py-4">
-              <div className="flex items-center justify-between">
+            <div className="container mx-auto px-4 py-3">
+              <Link href="/" className="flex items-center gap-3 w-fit hover:opacity-90 transition-opacity">
+                <VibeSyncLogo size={40} />
                 <div>
-                  <h1 className="text-2xl font-bold">VibeSync</h1>
-                  <p className="text-sm text-violet-100">Visual Inspiration Library</p>
+                  <h1 className="text-xl font-bold leading-tight">VibeSync</h1>
+                  <p className="text-xs text-violet-200">Visual Inspiration Library</p>
                 </div>
-              </div>
+              </Link>
             </div>
           </header>
           <main className="flex-1">

@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Type, Palette, Code, ChevronDown, Share2, Copy, Check, Sun, Moon, Sparkles, FolderPlus, Wand2, Zap, CreditCard } from 'lucide-react';
+import { X, Download, Type, Palette, Code, ChevronDown, Share2, Copy, Check, Sun, Moon, Sparkles, FolderPlus, Wand2, Zap, CreditCard, Sliders } from 'lucide-react';
 import { downloadWPTheme } from '@/lib/wpThemeGenerator';
 import { generatePalette } from '@/lib/colorUtils';
 import { generateTailwindConfig, generateSCSS, generateReactComponent, generateVueComponent, generateFigmaCSS, generateJSON, generateShareURL } from '@/lib/exportUtils';
 import { addToHistory, getCollections, addToCollection, createCollection } from '@/lib/styleHistory';
 import { generateAIInstructions, generateCardStyles } from '@/lib/mockStyles';
+import ThemeCustomizer from './ThemeCustomizer';
 
 // Available fonts organized by category
 const FONT_OPTIONS = {
@@ -235,20 +236,28 @@ export default function StylePreview({ style, onClose }) {
   const [collections, setCollections] = useState([]);
   const [newCollectionName, setNewCollectionName] = useState('');
   const [showAIInstructions, setShowAIInstructions] = useState(false);
+  const [showCustomizer, setShowCustomizer] = useState(false);
+  const [currentStyle, setCurrentStyle] = useState(style);
 
   // Color palette
-  const palette = generatePalette(style.primaryColor);
+  const palette = generatePalette(currentStyle.primaryColor);
 
   // Copy AI instructions handler
   const handleCopyAIInstructions = () => {
-    const instructions = generateAIInstructions(style, true);
+    const instructions = generateAIInstructions(currentStyle, true);
     navigator.clipboard.writeText(instructions);
     setCopiedAI(true);
     setTimeout(() => setCopiedAI(false), 2000);
   };
 
+  // Handle customized style save
+  const handleCustomStyleSaved = (newStyle) => {
+    setCurrentStyle(newStyle);
+  };
+
   // Update selected fonts when style changes
   useEffect(() => {
+    setCurrentStyle(style);
     setSelectedFont(style.fontFamily);
     setH1Font(style.fontFamily);
     setH2Font(style.fontFamily);
@@ -1291,6 +1300,15 @@ body {
                 {copiedAI ? 'Copied! ✓' : 'Copy AI'}
               </button>
               
+              {/* Customize Theme */}
+              <button
+                onClick={() => setShowCustomizer(true)}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-white font-semibold bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl hover:shadow-lg hover:scale-[1.01] transition-all"
+              >
+                <Sliders size={18} />
+                Customize
+              </button>
+              
               {/* Export WordPress Theme */}
               <button
                 onClick={handleExportWPTheme}
@@ -1365,6 +1383,15 @@ body {
           </div>
         </motion.div>
       </motion.div>
+
+      {/* Theme Customizer Modal */}
+      {showCustomizer && (
+        <ThemeCustomizer
+          style={currentStyle}
+          onClose={() => setShowCustomizer(false)}
+          onSave={handleCustomStyleSaved}
+        />
+      )}
     </AnimatePresence>
   );
 }
