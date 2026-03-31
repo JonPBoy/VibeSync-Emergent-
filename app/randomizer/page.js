@@ -7,6 +7,22 @@ import { MOCK_STYLES, generateRandomTheme } from '@/lib/mockStyles';
 import { downloadWPTheme } from '@/lib/wpThemeGenerator';
 import Navbar from '../components/Navbar';
 
+// Pre-defined particle positions to avoid hydration mismatch (no Math.random during render)
+const PARTICLE_CONFIGS = [
+  { x: -150, y: -120, delay: 0.1, repeatDelay: 0.2 },
+  { x: 180, y: -80, delay: 0.2, repeatDelay: 0.3 },
+  { x: -100, y: 150, delay: 0.15, repeatDelay: 0.25 },
+  { x: 120, y: 100, delay: 0.3, repeatDelay: 0.15 },
+  { x: -180, y: 50, delay: 0.05, repeatDelay: 0.4 },
+  { x: 80, y: -150, delay: 0.25, repeatDelay: 0.1 },
+  { x: -50, y: 180, delay: 0.4, repeatDelay: 0.35 },
+  { x: 160, y: -30, delay: 0.35, repeatDelay: 0.2 },
+  { x: -120, y: -180, delay: 0.1, repeatDelay: 0.45 },
+  { x: 40, y: 160, delay: 0.45, repeatDelay: 0.15 },
+  { x: -160, y: -50, delay: 0.2, repeatDelay: 0.3 },
+  { x: 100, y: -100, delay: 0.3, repeatDelay: 0.25 },
+];
+
 // Dice Rolling Animation Component
 const DiceRollAnimation = ({ isRolling, onComplete }) => {
   const [diceValues, setDiceValues] = useState([1, 2, 3]);
@@ -109,8 +125,8 @@ const DiceRollAnimation = ({ isRolling, onComplete }) => {
               <p className="text-white/60">Creating something beautiful</p>
             </motion.div>
             
-            {/* Sparkle particles */}
-            {[...Array(12)].map((_, i) => (
+            {/* Sparkle particles - using pre-defined positions to avoid hydration mismatch */}
+            {PARTICLE_CONFIGS.map((config, i) => (
               <motion.div
                 key={i}
                 className="absolute w-2 h-2 bg-white rounded-full"
@@ -121,16 +137,16 @@ const DiceRollAnimation = ({ isRolling, onComplete }) => {
                   scale: 0 
                 }}
                 animate={{ 
-                  x: (Math.random() - 0.5) * 400, 
-                  y: (Math.random() - 0.5) * 400, 
+                  x: config.x, 
+                  y: config.y, 
                   opacity: [0, 1, 0],
                   scale: [0, 1.5, 0]
                 }}
                 transition={{ 
                   duration: 1.5, 
-                  delay: Math.random() * 0.5,
+                  delay: config.delay,
                   repeat: Infinity,
-                  repeatDelay: Math.random() * 0.5
+                  repeatDelay: config.repeatDelay
                 }}
                 style={{
                   left: '50%',

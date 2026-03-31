@@ -527,6 +527,98 @@ body {
     </div>
   );
 
+  // Compact font selector for 2x2 grid layout
+  const CompactFontSelector = ({ label, value, onChange, isOpen, setIsOpen, closeOthers }) => (
+    <div className="bg-white rounded-lg p-2 border border-slate-100">
+      <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block mb-1">{label}</span>
+      <div className="relative">
+        <button
+          onClick={() => {
+            closeOthers();
+            setIsOpen(!isOpen);
+          }}
+          className="w-full flex items-center justify-between gap-1 px-2 py-1.5 bg-slate-50 border border-slate-200 rounded hover:border-violet-400 transition-colors text-xs"
+          style={{ fontFamily: value }}
+        >
+          <span className="truncate">{value.split(',')[0]}</span>
+          <ChevronDown size={10} className={`text-slate-400 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+        </button>
+        
+        {isOpen && (
+          <div className="absolute top-full left-0 mt-1 w-52 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl z-50">
+            {Object.entries(FONT_OPTIONS).map(([category, fonts]) => (
+              <div key={category}>
+                <div className="px-2 py-1 bg-slate-50 text-[10px] font-semibold text-slate-500 uppercase tracking-wider sticky top-0">
+                  {category}
+                </div>
+                {fonts.map((font) => (
+                  <button
+                    key={font}
+                    onClick={() => {
+                      onChange(font);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full px-2 py-1 text-left hover:bg-violet-50 transition-colors text-xs ${
+                      value === font ? 'bg-violet-100 text-violet-700' : 'text-slate-700'
+                    }`}
+                    style={{ fontFamily: font }}
+                  >
+                    {font.split(',')[0]}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // Compact list style selector
+  const CompactListStyleSelector = () => (
+    <div className="bg-white rounded-lg p-2 border border-slate-100">
+      <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block mb-1">List Style</span>
+      <div className="relative">
+        <button
+          onClick={() => {
+            setShowH1Dropdown(false);
+            setShowH2Dropdown(false);
+            setShowH3Dropdown(false);
+            setShowParagraphDropdown(false);
+            setShowListStyleDropdown(!showListStyleDropdown);
+          }}
+          className="w-full flex items-center justify-between gap-1 px-2 py-1.5 bg-slate-50 border border-slate-200 rounded hover:border-violet-400 transition-colors text-xs"
+        >
+          <span className="flex items-center gap-1.5">
+            <span className="w-4 text-center">{LIST_STYLES.find(s => s.id === listStyle)?.icon}</span>
+            <span className="truncate">{LIST_STYLES.find(s => s.id === listStyle)?.name}</span>
+          </span>
+          <ChevronDown size={10} className={`text-slate-400 flex-shrink-0 ${showListStyleDropdown ? 'rotate-180' : ''}`} />
+        </button>
+        
+        {showListStyleDropdown && (
+          <div className="absolute top-full left-0 mt-1 w-44 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl z-50">
+            {LIST_STYLES.map((listOption) => (
+              <button
+                key={listOption.id}
+                onClick={() => {
+                  setListStyle(listOption.id);
+                  setShowListStyleDropdown(false);
+                }}
+                className={`w-full px-2 py-1.5 text-left hover:bg-violet-50 transition-colors text-xs flex items-center gap-2 ${
+                  listStyle === listOption.id ? 'bg-violet-100 text-violet-700' : 'text-slate-700'
+                }`}
+              >
+                <span className="w-4 text-center">{listOption.icon}</span>
+                <span>{listOption.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   // Close all dropdowns helper
   const closeAllDropdowns = () => {
     setShowH1Dropdown(false);
@@ -719,335 +811,209 @@ body {
                 </div>
               </div>
             ) : activeTab === 'typography' ? (
-              <div>
-                {/* Typography Controls */}
-                <div className="bg-slate-50 rounded-xl p-4 mb-6">
-                  <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                    <Type size={18} className="text-violet-600" />
-                    Typography Settings
-                  </h3>
-                  <p className="text-sm text-slate-500 mb-4">Customize fonts for each text element individually</p>
+              <div className="flex flex-col lg:flex-row gap-4">
+                {/* Typography Controls - Compact Side Panel */}
+                <div className="bg-slate-50 rounded-xl p-3 lg:w-80 flex-shrink-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-slate-900 text-sm flex items-center gap-1.5">
+                      <Type size={14} className="text-violet-600" />
+                      Font Settings
+                    </h3>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => {
+                          const font = h1Font;
+                          setH2Font(font);
+                          setH3Font(font);
+                          setParagraphFont(font);
+                        }}
+                        className="text-[10px] px-2 py-1 bg-violet-100 text-violet-700 rounded hover:bg-violet-200 transition-colors"
+                        title="Apply H1 font to all"
+                      >
+                        Sync
+                      </button>
+                      <button
+                        onClick={() => {
+                          setH1Font(style.fontFamily);
+                          setH2Font(style.fontFamily);
+                          setH3Font(style.fontFamily);
+                          setParagraphFont(style.fontFamily);
+                          setListStyle('disc');
+                        }}
+                        className="text-[10px] px-2 py-1 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition-colors"
+                        title="Reset to default"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
                   
-                  <div className="bg-white rounded-lg p-4 space-y-1">
-                    <IndividualFontSelector
-                      label="H1 - Headlines"
+                  {/* Compact 2x2 Grid for Font Selectors */}
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    <CompactFontSelector
+                      label="H1"
                       value={h1Font}
                       onChange={setH1Font}
                       isOpen={showH1Dropdown}
                       setIsOpen={setShowH1Dropdown}
                       closeOthers={() => { setShowH2Dropdown(false); setShowH3Dropdown(false); setShowParagraphDropdown(false); setShowListStyleDropdown(false); }}
                     />
-                    <IndividualFontSelector
-                      label="H2 - Subheadlines"
+                    <CompactFontSelector
+                      label="H2"
                       value={h2Font}
                       onChange={setH2Font}
                       isOpen={showH2Dropdown}
                       setIsOpen={setShowH2Dropdown}
                       closeOthers={() => { setShowH1Dropdown(false); setShowH3Dropdown(false); setShowParagraphDropdown(false); setShowListStyleDropdown(false); }}
                     />
-                    <IndividualFontSelector
-                      label="H3 - Section Titles"
+                    <CompactFontSelector
+                      label="H3"
                       value={h3Font}
                       onChange={setH3Font}
                       isOpen={showH3Dropdown}
                       setIsOpen={setShowH3Dropdown}
                       closeOthers={() => { setShowH1Dropdown(false); setShowH2Dropdown(false); setShowParagraphDropdown(false); setShowListStyleDropdown(false); }}
                     />
-                    <IndividualFontSelector
-                      label="Paragraph & Body"
+                    <CompactFontSelector
+                      label="Body"
                       value={paragraphFont}
                       onChange={setParagraphFont}
                       isOpen={showParagraphDropdown}
                       setIsOpen={setShowParagraphDropdown}
                       closeOthers={() => { setShowH1Dropdown(false); setShowH2Dropdown(false); setShowH3Dropdown(false); setShowListStyleDropdown(false); }}
                     />
-                    <ListStyleSelector />
                   </div>
 
-                  {/* Quick Actions */}
-                  <div className="mt-4 flex gap-2">
-                    <button
-                      onClick={() => {
-                        const font = h1Font;
-                        setH2Font(font);
-                        setH3Font(font);
-                        setParagraphFont(font);
-                      }}
-                      className="text-xs px-3 py-1.5 bg-violet-100 text-violet-700 rounded-lg hover:bg-violet-200 transition-colors"
-                    >
-                      Apply H1 font to all
-                    </button>
-                    <button
-                      onClick={() => {
-                        setH1Font(style.fontFamily);
-                        setH2Font(style.fontFamily);
-                        setH3Font(style.fontFamily);
-                        setParagraphFont(style.fontFamily);
-                        setListStyle('disc');
-                      }}
-                      className="text-xs px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
-                    >
-                      Reset to default
-                    </button>
-                  </div>
+                  {/* List Style Selector - Compact */}
+                  <CompactListStyleSelector />
                 </div>
 
-                {/* Typography Preview */}
+                {/* Typography Preview - Compact Side-by-Side Layout */}
                 <div
-                  className="rounded-2xl p-8 min-h-[500px]"
+                  className="rounded-xl p-4 flex-1 overflow-auto"
                   style={{
                     backgroundColor: bgColor,
                   }}
                 >
-                  <div className="max-w-3xl mx-auto">
-                    {/* H1 - Main Headline */}
-                    <div className="mb-8">
+                  {/* Compact Typography Demo */}
+                  <div className="space-y-3">
+                    {/* H1 */}
+                    <div className="flex items-start gap-2">
                       <span 
-                        className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
-                        style={{ 
-                          backgroundColor: style.primaryColor, 
-                          color: getLabelTextColor(style.primaryColor) 
-                        }}
+                        className="text-[9px] font-mono px-1.5 py-0.5 rounded whitespace-nowrap flex-shrink-0 mt-1"
+                        style={{ backgroundColor: style.primaryColor, color: getLabelTextColor(style.primaryColor) }}
                       >
-                        H1 - Headline • {h1Font.split(',')[0]}
+                        H1
                       </span>
                       <h1 
-                        className="text-5xl font-bold leading-tight"
+                        className="text-3xl lg:text-4xl font-bold leading-tight"
                         style={{ color: primaryTextColor, fontFamily: h1Font }}
                       >
                         {content.headline}
                       </h1>
                     </div>
 
-                    {/* H2 - Subheadline */}
-                    <div className="mb-8">
+                    {/* H2 */}
+                    <div className="flex items-start gap-2">
                       <span 
-                        className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
-                        style={{ 
-                          backgroundColor: style.secondaryColor, 
-                          color: getLabelTextColor(style.secondaryColor) 
-                        }}
+                        className="text-[9px] font-mono px-1.5 py-0.5 rounded whitespace-nowrap flex-shrink-0 mt-0.5"
+                        style={{ backgroundColor: style.secondaryColor, color: getLabelTextColor(style.secondaryColor) }}
                       >
-                        H2 - Subheadline • {h2Font.split(',')[0]}
+                        H2
                       </span>
                       <h2 
-                        className="text-3xl font-semibold leading-snug"
+                        className="text-xl lg:text-2xl font-semibold"
                         style={{ color: secondaryTextColor, fontFamily: h2Font }}
                       >
                         {content.tagline}
                       </h2>
                     </div>
 
-                    {/* Lead Paragraph */}
-                    <div className="mb-8">
+                    {/* H3 + List Compact Row */}
+                    <div className="flex items-start gap-2">
                       <span 
-                        className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
-                        style={{ 
-                          backgroundColor: style.accentColor, 
-                          color: getLabelTextColor(style.accentColor) 
-                        }}
+                        className="text-[9px] font-mono px-1.5 py-0.5 rounded whitespace-nowrap flex-shrink-0 mt-0.5"
+                        style={{ backgroundColor: style.accentColor, color: getLabelTextColor(style.accentColor) }}
                       >
-                        Lead Paragraph • {paragraphFont.split(',')[0]}
+                        H3
+                      </span>
+                      <div>
+                        <h3 className="text-lg font-semibold" style={{ color: primaryTextColor, fontFamily: h3Font }}>
+                          Key Features
+                        </h3>
+                        <ul className="mt-1 space-y-0.5">
+                          {content.features.slice(0, 3).map((feature, index) => (
+                            <li key={index} className="flex items-center gap-2 text-sm" style={{ fontFamily: paragraphFont }}>
+                              {listStyle !== 'none' && (
+                                <span style={{ color: style.accentColor }}>{getListMarker(index)}</span>
+                              )}
+                              <span style={{ color: bodyTextColor }}>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Body Text Compact */}
+                    <div className="flex items-start gap-2">
+                      <span 
+                        className="text-[9px] font-mono px-1.5 py-0.5 rounded whitespace-nowrap flex-shrink-0 mt-0.5"
+                        style={{ backgroundColor: style.secondaryColor, color: getLabelTextColor(style.secondaryColor) }}
+                      >
+                        P
                       </span>
                       <p 
-                        className="text-xl leading-relaxed"
+                        className="text-sm leading-relaxed"
                         style={{ color: bodyTextColor, fontFamily: paragraphFont }}
                       >
                         {content.description}
                       </p>
                     </div>
 
-                    {/* H3 with List Items */}
-                    <div className="mb-8">
-                      <span 
-                        className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
-                        style={{ 
-                          backgroundColor: style.primaryColor, 
-                          color: getLabelTextColor(style.primaryColor) 
-                        }}
-                      >
-                        H3 + List • {h3Font.split(',')[0]} • Style: {LIST_STYLES.find(s => s.id === listStyle)?.name}
-                      </span>
-                      <h3 
-                        className="text-2xl font-semibold mb-4"
-                        style={{ color: primaryTextColor, fontFamily: h3Font }}
-                      >
-                        Key Features
-                      </h3>
-                      <ul className="space-y-3">
-                        {content.features.map((feature, index) => (
-                          <li key={index} className="flex items-start gap-3" style={{ fontFamily: paragraphFont }}>
-                            {listStyle !== 'none' && (
-                              <span 
-                                className="flex-shrink-0 mt-0.5 min-w-[20px] text-center"
-                                style={{ color: style.accentColor }}
-                              >
-                                {getListMarker(index)}
-                              </span>
-                            )}
-                            <span style={{ color: bodyTextColor }}>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    {/* Quote Compact */}
+                    <blockquote 
+                      className="text-base italic pl-3 py-2 border-l-2"
+                      style={{ 
+                        borderColor: style.accentColor,
+                        color: primaryTextColor,
+                        fontFamily: h2Font,
+                      }}
+                    >
+                      "{content.quote}"
+                    </blockquote>
 
-                    {/* Numbered List Example */}
-                    <div className="mb-8">
-                      <span 
-                        className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
-                        style={{ 
-                          backgroundColor: style.secondaryColor, 
-                          color: getLabelTextColor(style.secondaryColor) 
+                    {/* Buttons Row */}
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      <button
+                        className="px-4 py-2 text-sm font-semibold transition-transform hover:scale-105"
+                        style={{
+                          background: style.gradientStyle || `linear-gradient(135deg, ${style.primaryColor}, ${style.secondaryColor})`,
+                          color: '#ffffff',
+                          borderRadius: style.borderRadius,
+                          fontFamily: paragraphFont,
                         }}
                       >
-                        Ordered List Preview
-                      </span>
-                      <ol className="space-y-2 mt-2">
-                        {['First step in the process', 'Second important item', 'Third and final point'].map((item, index) => (
-                          <li key={index} className="flex items-start gap-3" style={{ fontFamily: paragraphFont }}>
-                            {listStyle !== 'none' && (
-                              <span 
-                                className="flex-shrink-0 mt-0.5 min-w-[20px] text-center font-medium"
-                                style={{ color: style.accentColor }}
-                              >
-                                {getListMarker(index)}
-                              </span>
-                            )}
-                            <span style={{ color: bodyTextColor }}>{item}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-
-                    {/* Regular Paragraph */}
-                    <div className="mb-8">
-                      <span 
-                        className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
-                        style={{ 
-                          backgroundColor: style.secondaryColor, 
-                          color: getLabelTextColor(style.secondaryColor) 
-                        }}
-                      >
-                        Body Text • {paragraphFont.split(',')[0]}
-                      </span>
-                      <p 
-                        className="text-base leading-relaxed"
-                        style={{ color: bodyTextColor, fontFamily: paragraphFont }}
-                      >
-                        Typography is the art and technique of arranging type to make written language 
-                        legible, readable, and appealing when displayed. The arrangement of type involves 
-                        selecting typefaces, point sizes, line lengths, line-spacing, and letter-spacing, 
-                        as well as adjusting the space between pairs of letters.
-                      </p>
-                    </div>
-
-                    {/* Blockquote */}
-                    <div className="mb-8">
-                      <span 
-                        className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
-                        style={{ 
-                          backgroundColor: style.accentColor, 
-                          color: getLabelTextColor(style.accentColor) 
-                        }}
-                      >
-                        Blockquote
-                      </span>
-                      <blockquote 
-                        className="text-xl italic pl-6 py-4"
-                        style={{ 
-                          borderLeft: `4px solid ${style.accentColor}`,
+                        Primary
+                      </button>
+                      <button
+                        className="px-4 py-2 text-sm font-semibold"
+                        style={{
+                          backgroundColor: 'transparent',
                           color: primaryTextColor,
-                          fontFamily: h2Font,
+                          borderRadius: style.borderRadius,
+                          border: `2px solid ${style.primaryColor}`,
+                          fontFamily: paragraphFont,
                         }}
                       >
-                        "{content.quote}"
-                      </blockquote>
-                    </div>
-
-                    {/* Small Text & Caption */}
-                    <div className="mb-8">
-                      <span 
-                        className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
-                        style={{ 
-                          backgroundColor: style.primaryColor, 
-                          color: getLabelTextColor(style.primaryColor) 
-                        }}
+                        Secondary
+                      </button>
+                      <span
+                        className="px-2 py-2 text-sm underline"
+                        style={{ color: accentTextColor, fontFamily: paragraphFont }}
                       >
-                        Caption & Small Text
+                        Link →
                       </span>
-                      <p 
-                        className="text-sm opacity-70"
-                        style={{ color: bodyTextColor, fontFamily: paragraphFont }}
-                      >
-                        This is caption text, perfect for image descriptions, footnotes, and metadata. 
-                        Current fonts - H1: {h1Font.split(',')[0]}, H2: {h2Font.split(',')[0]}, H3: {h3Font.split(',')[0]}, Body: {paragraphFont.split(',')[0]}
-                      </p>
                     </div>
-
-                    {/* Button Examples */}
-                    <div>
-                      <span 
-                        className="text-xs font-mono px-2 py-1 rounded mb-2 inline-block"
-                        style={{ 
-                          backgroundColor: style.secondaryColor, 
-                          color: getLabelTextColor(style.secondaryColor) 
-                        }}
-                      >
-                        Button Typography
-                      </span>
-                      <div className="flex flex-wrap gap-4 mt-2">
-                        <button
-                          className="px-6 py-3 font-semibold transition-transform hover:scale-105"
-                          style={{
-                            background: style.gradientStyle || `linear-gradient(135deg, ${style.primaryColor}, ${style.secondaryColor})`,
-                            color: '#ffffff',
-                            borderRadius: style.borderRadius,
-                            boxShadow: style.shadowStyle,
-                            fontFamily: paragraphFont,
-                          }}
-                        >
-                          Primary Button
-                        </button>
-                        <button
-                          className="px-6 py-3 font-semibold transition-transform hover:scale-105"
-                          style={{
-                            backgroundColor: 'transparent',
-                            color: primaryTextColor,
-                            borderRadius: style.borderRadius,
-                            border: `2px solid ${style.primaryColor}`,
-                            fontFamily: paragraphFont,
-                          }}
-                        >
-                          Secondary Button
-                        </button>
-                        <button
-                          className="px-6 py-3 font-medium transition-transform hover:scale-105 underline"
-                          style={{
-                            backgroundColor: 'transparent',
-                            color: accentTextColor,
-                            fontFamily: paragraphFont,
-                          }}
-                        >
-                          Text Link →
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Info Section */}
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-violet-50 rounded-xl">
-                    <h4 className="text-sm font-semibold text-violet-700 mb-2">🎨 Auto Contrast</h4>
-                    <p className="text-xs text-violet-600">
-                      Text colors automatically adjust for readability against the background.
-                    </p>
-                  </div>
-                  <div className="p-4 bg-emerald-50 rounded-xl">
-                    <h4 className="text-sm font-semibold text-emerald-700 mb-2">📋 Export Ready</h4>
-                    <p className="text-xs text-emerald-600">
-                      Your custom typography settings will be included in CSS and WordPress exports.
-                    </p>
                   </div>
                 </div>
               </div>
