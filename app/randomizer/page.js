@@ -223,6 +223,7 @@ const getContrastColor = (hexColor) => {
 export default function RandomizerPage() {
   const [styles, setStyles] = useState([]);
   const [currentStyle, setCurrentStyle] = useState(null);
+  const [darkModeStyle, setDarkModeStyle] = useState(null); // Separate dark mode style
   const [locks, setLocks] = useState({
     colors: false,
     typography: false,
@@ -243,6 +244,15 @@ export default function RandomizerPage() {
     // Generate initial theme only after mount to avoid hydration mismatch
     const initialTheme = generateRandomTheme();
     setCurrentStyle(initialTheme);
+    // Generate dark mode variant
+    const darkTheme = {
+      ...initialTheme,
+      backgroundColor: '#1a1a2e',
+      textColor: '#ffffff',
+      cardBackground: '#252540',
+      cardText: '#e2e8f0',
+    };
+    setDarkModeStyle(darkTheme);
   }, []);
 
   // Dice roll handler with animation
@@ -262,6 +272,14 @@ export default function RandomizerPage() {
     // Generate completely new theme
     const newTheme = generateRandomTheme();
     setCurrentStyle(newTheme);
+    // Generate dark mode variant
+    setDarkModeStyle({
+      ...newTheme,
+      backgroundColor: '#1a1a2e',
+      textColor: '#ffffff',
+      cardBackground: '#252540',
+      cardText: '#e2e8f0',
+    });
     setSaved(false);
     
     // Small delay before hiding animation
@@ -294,6 +312,14 @@ export default function RandomizerPage() {
     }
     
     setCurrentStyle(newTheme);
+    // Update dark mode variant with same colors but dark background
+    setDarkModeStyle({
+      ...newTheme,
+      backgroundColor: '#1a1a2e',
+      textColor: '#ffffff',
+      cardBackground: '#252540',
+      cardText: '#e2e8f0',
+    });
     setSaved(false);
   };
 
@@ -302,14 +328,28 @@ export default function RandomizerPage() {
   };
 
   const updateStyle = (key, value) => {
-    if (!currentStyle) return;
-    const updatedStyle = { ...currentStyle, [key]: value };
-    if (['primaryColor', 'secondaryColor'].includes(key)) {
-      updatedStyle.gradientStyle = `linear-gradient(135deg, ${updatedStyle.primaryColor} 0%, ${updatedStyle.secondaryColor} 100%)`;
+    if (isDarkMode) {
+      // Update dark mode style
+      if (!darkModeStyle) return;
+      const updatedStyle = { ...darkModeStyle, [key]: value };
+      if (['primaryColor', 'secondaryColor'].includes(key)) {
+        updatedStyle.gradientStyle = `linear-gradient(135deg, ${updatedStyle.primaryColor} 0%, ${updatedStyle.secondaryColor} 100%)`;
+      }
+      setDarkModeStyle(updatedStyle);
+    } else {
+      // Update light mode style
+      if (!currentStyle) return;
+      const updatedStyle = { ...currentStyle, [key]: value };
+      if (['primaryColor', 'secondaryColor'].includes(key)) {
+        updatedStyle.gradientStyle = `linear-gradient(135deg, ${updatedStyle.primaryColor} 0%, ${updatedStyle.secondaryColor} 100%)`;
+      }
+      setCurrentStyle(updatedStyle);
     }
-    setCurrentStyle(updatedStyle);
     setSaved(false);
   };
+
+  // Get the active style based on mode
+  const activeStyle = isDarkMode ? darkModeStyle : currentStyle;
 
   const handleDownload = async () => {
     if (!currentStyle) return;
@@ -324,7 +364,7 @@ export default function RandomizerPage() {
   };
 
   const saveToFavorites = () => {
-    if (!currentStyle) return;
+    if (!currentStyle || !darkModeStyle) return;
     // Generate unique ID with timestamp + random suffix
     const uniqueId = `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const customStyle = {
@@ -332,6 +372,13 @@ export default function RandomizerPage() {
       id: uniqueId,
       name: `Custom Style ${new Date().toLocaleDateString()}`,
       category: 'custom',
+      // Include dark mode settings
+      darkMode: {
+        backgroundColor: darkModeStyle.backgroundColor,
+        textColor: darkModeStyle.textColor,
+        cardBackground: darkModeStyle.cardBackground || '#252540',
+        cardText: darkModeStyle.cardText || '#e2e8f0',
+      }
     };
     const customStyles = JSON.parse(localStorage.getItem('vibesync_custom_styles') || '[]');
     customStyles.push(customStyle);
@@ -398,52 +445,18 @@ export default function RandomizerPage() {
               <div
                 className="relative rounded-3xl overflow-hidden shadow-2xl"
                 style={{
-                  background: currentStyle.gradientStyle || `linear-gradient(135deg, ${currentStyle.primaryColor}, ${currentStyle.secondaryColor})`,
-                  fontFamily: currentStyle.fontFamily,
+                  background: activeStyle?.gradientStyle || `linear-gradient(135deg, ${activeStyle?.primaryColor}, ${activeStyle?.secondaryColor})`,
+                  fontFamily: activeStyle?.fontFamily,
                 }}
               >
-                {/* Lock Pills - Floating on preview */}
-                <div className="absolute top-4 left-4 flex flex-wrap gap-2 z-10">
-                  <LockPill lockKey="colors" icon={Palette} label="Colors" />
-                  <LockPill lockKey="typography" icon={Type} label="Font" />
-                  <LockPill lockKey="radius" icon={Square} label="Radius" />
-                  <LockPill lockKey="shadow" icon={Sparkles} label="Shadow" />
-                  
-                  {/* Day/Night Toggle */}
-                  <div className="flex items-center bg-white/80 backdrop-blur-sm rounded-full p-0.5 shadow-sm">
-                    <button
-                      onClick={() => setIsDarkMode(false)}
-                      className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                        !isDarkMode
-                          ? 'bg-amber-400 text-white shadow-md'
-                          : 'text-slate-500 hover:text-slate-700'
-                      }`}
-                    >
-                      <Sun size={12} />
-                      Day
-                    </button>
-                    <button
-                      onClick={() => setIsDarkMode(true)}
-                      className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                        isDarkMode
-                          ? 'bg-indigo-600 text-white shadow-md'
-                          : 'text-slate-500 hover:text-slate-700'
-                      }`}
-                    >
-                      <Moon size={12} />
-                      Night
-                    </button>
-                  </div>
-                </div>
-
-                {/* Action Buttons - Floating */}
-                <div className="absolute top-4 right-4 flex gap-2 z-10">
+                {/* Top Controls Row - Generate & Roll Dice centered at very top */}
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-3 z-20">
                   {/* Regular Generate */}
                   <button
                     onClick={handleGenerateNewTheme}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm text-violet-700 font-bold rounded-full hover:bg-white hover:shadow-lg transition-all"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-white/95 backdrop-blur-sm text-violet-700 font-bold rounded-full hover:bg-white hover:shadow-lg transition-all border border-white/50"
                   >
-                    <Wand2 size={16} />
+                    <Wand2 size={18} />
                     Generate
                   </button>
                   
@@ -452,7 +465,7 @@ export default function RandomizerPage() {
                     onClick={handleDiceRoll}
                     whileHover={{ scale: 1.05, rotate: [0, -5, 5, 0] }}
                     whileTap={{ scale: 0.95 }}
-                    className="relative flex items-center gap-2 px-5 py-2 font-bold rounded-full overflow-hidden group"
+                    className="relative flex items-center gap-2 px-6 py-2.5 font-bold rounded-full overflow-hidden group"
                     style={{
                       background: 'linear-gradient(135deg, #8B5CF6 0%, #D946EF 50%, #06B6D4 100%)',
                       boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)',
@@ -486,14 +499,48 @@ export default function RandomizerPage() {
                   </motion.button>
                 </div>
 
+                {/* Lock Pills - Second row below buttons */}
+                <div className="absolute top-20 left-4 flex flex-wrap gap-2 z-10">
+                  <LockPill lockKey="colors" icon={Palette} label="Colors" />
+                  <LockPill lockKey="typography" icon={Type} label="Font" />
+                  <LockPill lockKey="radius" icon={Square} label="Radius" />
+                  <LockPill lockKey="shadow" icon={Sparkles} label="Shadow" />
+                  
+                  {/* Day/Night Toggle */}
+                  <div className="flex items-center bg-white/80 backdrop-blur-sm rounded-full p-0.5 shadow-sm">
+                    <button
+                      onClick={() => setIsDarkMode(false)}
+                      className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        !isDarkMode
+                          ? 'bg-amber-400 text-white shadow-md'
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      <Sun size={12} />
+                      Day
+                    </button>
+                    <button
+                      onClick={() => setIsDarkMode(true)}
+                      className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        isDarkMode
+                          ? 'bg-indigo-600 text-white shadow-md'
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      <Moon size={12} />
+                      Night
+                    </button>
+                  </div>
+                </div>
+
                 {/* Preview Content */}
-                <div className="px-8 py-16 md:px-16 md:py-20" style={{ backgroundColor: isDarkMode ? 'rgba(0,0,0,0.3)' : 'transparent' }}>
+                <div className="px-8 pt-32 pb-16 md:px-16 md:pt-36 md:pb-20" style={{ backgroundColor: isDarkMode ? 'rgba(0,0,0,0.3)' : 'transparent' }}>
                   <div className="max-w-3xl mx-auto text-center">
                     <h1 
                       className="text-4xl md:text-6xl font-bold mb-4" 
                       style={{ color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.2)' }}
                     >
-                      {currentStyle.name || 'Your Custom Style'}
+                      {activeStyle?.name || 'Your Custom Style'}
                     </h1>
                     <p 
                       className="text-lg md:text-xl mb-8 max-w-xl mx-auto" 
@@ -505,10 +552,10 @@ export default function RandomizerPage() {
                       <button
                         className="px-8 py-3 font-semibold text-lg transition-transform hover:scale-105"
                         style={{
-                          backgroundColor: currentStyle.accentColor,
-                          color: getContrastColor(currentStyle.accentColor),
-                          borderRadius: currentStyle.borderRadius,
-                          boxShadow: currentStyle.shadowStyle,
+                          backgroundColor: activeStyle?.accentColor,
+                          color: getContrastColor(activeStyle?.accentColor),
+                          borderRadius: activeStyle?.borderRadius,
+                          boxShadow: activeStyle?.shadowStyle,
                         }}
                       >
                         Primary Action
@@ -518,7 +565,7 @@ export default function RandomizerPage() {
                         style={{
                           backgroundColor: 'rgba(255,255,255,0.2)',
                           color: '#ffffff',
-                          borderRadius: currentStyle.borderRadius,
+                          borderRadius: activeStyle?.borderRadius,
                           border: '2px solid rgba(255,255,255,0.4)',
                           backdropFilter: 'blur(10px)',
                         }}
@@ -532,7 +579,7 @@ export default function RandomizerPage() {
                 {/* Card Preview Strip */}
                 <div 
                   className="px-6 py-6"
-                  style={{ backgroundColor: isDarkMode ? '#1a1a2e' : currentStyle.backgroundColor }}
+                  style={{ backgroundColor: isDarkMode ? darkModeStyle?.backgroundColor : currentStyle?.backgroundColor }}
                 >
                   <div className="flex gap-4 overflow-x-auto pb-2">
                     {/* Mini Cards */}
@@ -545,20 +592,20 @@ export default function RandomizerPage() {
                         key={i}
                         className="flex-shrink-0 w-48 p-4 transition-transform hover:scale-105"
                         style={{
-                          backgroundColor: isDarkMode ? '#252540' : 'white',
-                          borderRadius: currentStyle.borderRadius,
-                          boxShadow: currentStyle.shadowStyle,
+                          backgroundColor: isDarkMode ? (darkModeStyle?.cardBackground || '#252540') : 'white',
+                          borderRadius: activeStyle?.borderRadius,
+                          boxShadow: activeStyle?.shadowStyle,
                         }}
                       >
                         <h4 
                           className="font-bold mb-1"
-                          style={{ color: currentStyle.primaryColor, fontFamily: currentStyle.fontFamily }}
+                          style={{ color: activeStyle?.primaryColor, fontFamily: activeStyle?.fontFamily }}
                         >
                           {card.title}
                         </h4>
                         <p 
                           className="text-sm"
-                          style={{ color: isDarkMode ? 'rgba(255,255,255,0.7)' : currentStyle.textColor, fontFamily: currentStyle.fontFamily }}
+                          style={{ color: isDarkMode ? 'rgba(255,255,255,0.7)' : activeStyle?.textColor, fontFamily: activeStyle?.fontFamily }}
                         >
                           {card.desc}
                         </p>
@@ -568,9 +615,9 @@ export default function RandomizerPage() {
                     {/* Color Swatches */}
                     <div className="flex-shrink-0 flex items-center gap-2 px-4">
                       {[
-                        currentStyle.primaryColor,
-                        currentStyle.secondaryColor,
-                        currentStyle.accentColor,
+                        activeStyle?.primaryColor,
+                        activeStyle?.secondaryColor,
+                        activeStyle?.accentColor,
                       ].map((color, i) => (
                         <div
                           key={i}
@@ -636,7 +683,7 @@ export default function RandomizerPage() {
             </div>
 
             {/* Panel Content */}
-            {currentStyle && (
+            {activeStyle && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {activePanel === 'colors' && (
                   <>
@@ -649,15 +696,17 @@ export default function RandomizerPage() {
                       <div key={color.key} className="flex items-center gap-3 p-2 bg-slate-50 rounded-xl">
                         <input
                           type="color"
-                          value={currentStyle[color.key]?.startsWith('#') ? currentStyle[color.key] : '#000000'}
+                          value={activeStyle[color.key]?.startsWith('#') ? activeStyle[color.key] : '#000000'}
                           onChange={(e) => updateStyle(color.key, e.target.value)}
                           className="w-10 h-10 rounded-lg border-2 border-white shadow-sm cursor-pointer"
                         />
                         <div className="flex-1">
-                          <label className="text-xs font-medium text-slate-500">{color.label}</label>
+                          <label className="text-xs font-medium text-slate-500">
+                            {color.label} {isDarkMode && <span className="text-indigo-500">(Dark)</span>}
+                          </label>
                           <input
                             type="text"
-                            value={currentStyle[color.key] || ''}
+                            value={activeStyle[color.key] || ''}
                             onChange={(e) => updateStyle(color.key, e.target.value)}
                             className="w-full text-sm font-mono text-slate-700 bg-transparent outline-none"
                           />
@@ -673,9 +722,9 @@ export default function RandomizerPage() {
                       <button
                         onClick={() => setShowFontDropdown(!showFontDropdown)}
                         className="w-full flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-violet-400 transition-colors"
-                        style={{ fontFamily: currentStyle.fontFamily }}
+                        style={{ fontFamily: activeStyle.fontFamily }}
                       >
-                        <span className="text-lg">{currentStyle.fontFamily?.split(',')[0]}</span>
+                        <span className="text-lg">{activeStyle.fontFamily?.split(',')[0]}</span>
                         <ChevronDown size={16} className={`transition-transform ${showFontDropdown ? 'rotate-180' : ''}`} />
                       </button>
                       {showFontDropdown && (
@@ -693,12 +742,12 @@ export default function RandomizerPage() {
                                     setShowFontDropdown(false);
                                   }}
                                   className={`w-full px-4 py-2 text-left hover:bg-violet-50 transition-colors flex items-center justify-between ${
-                                    currentStyle.fontFamily === font ? 'bg-violet-100 text-violet-700' : ''
+                                    activeStyle.fontFamily === font ? 'bg-violet-100 text-violet-700' : ''
                                   }`}
                                   style={{ fontFamily: font }}
                                 >
                                   {font.split(',')[0]}
-                                  {currentStyle.fontFamily === font && <Check size={16} />}
+                                  {activeStyle.fontFamily === font && <Check size={16} />}
                                 </button>
                               ))}
                             </div>
@@ -719,7 +768,7 @@ export default function RandomizerPage() {
                             key={radius}
                             onClick={() => updateStyle('borderRadius', radius)}
                             className={`px-3 py-2 text-sm font-medium transition-all ${
-                              currentStyle.borderRadius === radius
+                              activeStyle?.borderRadius === radius
                                 ? 'bg-violet-600 text-white'
                                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                             }`}
@@ -738,7 +787,7 @@ export default function RandomizerPage() {
                             key={shadow.label}
                             onClick={() => updateStyle('shadowStyle', shadow.value)}
                             className={`px-3 py-2 text-sm font-medium transition-all ${
-                              currentStyle.shadowStyle === shadow.value
+                              activeStyle?.shadowStyle === shadow.value
                                 ? 'bg-violet-600 text-white'
                                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                             }`}
@@ -755,21 +804,26 @@ export default function RandomizerPage() {
             )}
 
             {/* Style Properties - Compact Footer */}
-            {currentStyle && (
+            {activeStyle && (
               <div className="mt-4 pt-4 border-t border-slate-100 flex items-center gap-6 text-sm">
                 <div className="flex items-center gap-2">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${isDarkMode ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-700'}`}>
+                    {isDarkMode ? '🌙 Dark' : '☀️ Light'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
                   <span className="text-slate-400">Font:</span>
-                  <span className="font-medium" style={{ fontFamily: currentStyle.fontFamily }}>
-                    {currentStyle.fontFamily?.split(',')[0]}
+                  <span className="font-medium" style={{ fontFamily: activeStyle.fontFamily }}>
+                    {activeStyle.fontFamily?.split(',')[0]}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-slate-400">Radius:</span>
-                  <span className="font-medium">{currentStyle.borderRadius}</span>
+                  <span className="font-medium">{activeStyle.borderRadius}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="text-slate-400">Palette:</span>
-                  {[currentStyle.primaryColor, currentStyle.secondaryColor, currentStyle.accentColor].map((c, i) => (
+                  {[activeStyle.primaryColor, activeStyle.secondaryColor, activeStyle.accentColor].map((c, i) => (
                     <div key={i} className="w-5 h-5 rounded-full border border-white shadow-sm" style={{ backgroundColor: c }} />
                   ))}
                 </div>
